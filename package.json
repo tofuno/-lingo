@@ -34,7 +34,6 @@
       "public/**/*",
       "!src/config.json",
       "!data/**",
-      "!miniprogram/**",
       "!**/*.map",
       "!**/*.md"
     ],

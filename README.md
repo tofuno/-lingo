@@ -16,7 +16,6 @@ ticket-grabber/
 ├── public/                  # 控制台（像素风 · 移动端可用 · PWA 可安装）
 │   ├── index.html
 │   └── assets/              # Lingo 商标 / 桌宠 / 像素字体
-├── miniprogram/             # 微信小程序控制端（需自备 appid）
 ├── data/                    # 开发态：登录态(storageState)、截图
 └── src/
     ├── config.js            # 读写 config.json（打包后自动落到用户目录）
@@ -93,4 +92,3 @@ npm run pack     # 只产出解包目录 dist/win-unpacked（调试用，最快�
 ## 说明
 - 登录态保存在 `data/*.json`（开发态）或 `%APPDATA%\Lingo抢购助手\data\`（打包后），**不要提交到仓库**。
 - 监控请求频率遵循配置的 `intervalMs`，**建议 ≥ 500ms**，避免高频触发风控。
-- 小程序端：`miniprogram/` 用微信开发者工具导入即可；上线需 HTTPS + 已备案域名（微信硬性要求）。
