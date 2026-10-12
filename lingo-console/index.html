@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lingo 智能体调度台 · Token 仪表盘</title>
+<link rel="icon" href="./brand-assets/lingo-robot-head.png" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <!-- ===================== 侧边栏 ===================== -->
+    <aside class="side" id="side">
+      <div class="side-top">
+        <div class="side-brand">
+          <img src="./brand-assets/lingo-white.png" alt="Lingo" />
+          <small>BRAND SYSTEM · 智能体调度台</small>
+        </div>
+        <button class="side-toggle" id="sideToggle" aria-label="折叠侧边栏" aria-expanded="true" aria-controls="side">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <nav class="side-nav" aria-label="页面导航">
+        <a href="#dashboard" class="active" aria-current="true">
+          <svg class="nav-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" fill="currentColor"/></svg>
+          <span>仪表盘</span>
+        </a>
+        <a href="#agents">
+          <svg class="nav-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 4 6v6c0 4.4 3.4 8.5 8 9.9 4.6-1.4 8-5.5 8-9.9V6l-8-4Zm0 2.2 6 3v4.8c0 3.3-2.5 6.4-6 7.7-3.5-1.3-6-4.4-6-7.7V7.2l6-3Z" fill="currentColor"/></svg>
+          <span>Agent 监控</span>
+        </a>
+        <a href="#quota">
+          <svg class="nav-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2.5 6 5v6.2c0 3.4 2.6 6.6 6 7.6 3.4-1 6-4.2 6-7.6V5l-6-2.5Zm0 2.2 4 1.7v5.3c0 2.4-1.6 4.7-4 5.6-2.4-.9-4-3.2-4-5.6V6.4l4-1.7Z" fill="currentColor"/><path d="M11.2 13.8 8.9 11.5l1.1-1.1 1.2 1.2 2.8-2.8 1.1 1.1-3.9 3.9Z" fill="currentColor"/></svg>
+          <span>模型额度</span>
+        </a>
+        <a href="#traces">
+          <svg class="nav-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16M4 10h16M4 15h10M4 20h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>运行明细</span>
+        </a>
+      </nav>
+
+      <!-- Lingo 助手（机器人即 AI 助手本人，点击可派发任务） -->
+      <button class="side-bot" id="sideBot" type="button" aria-label="Lingo 助手（待命）：点击派发新任务" data-mood="idle" data-state="idle">
+        <img class="side-bot-ava" src="./brand-assets/lingo-robot.png" alt="" aria-hidden="true" />
+        <div class="side-bot-meta">
+          <b>Lingo 助手<span class="side-bot-mood" aria-hidden="true"></span></b>
+          <span id="sideBotMsg">随时待命，可派发任务</span>
+        </div>
+        <span class="side-bot-go" aria-hidden="true">+</span>
+      </button>
+      <p class="sr-only" role="status" aria-live="polite" id="sideBotLive"></p>
+
+      <!-- 技能面板入口（读取本地 skill 库） -->
+      <button class="side-skill-btn" id="sideSkillBtn" type="button" aria-haspopup="dialog" aria-controls="skillPanel">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l2.4 5.2 5.6.7-4.1 4 1 5.6L12 14.8 7.1 17.5l1-5.6-4.1-4 5.6-.7L12 2Z" fill="currentColor"/></svg>
+        <span>技能库</span>
+        <span class="side-skill-count" id="sideSkillCount">—</span>
+      </button>
+
+      <div class="side-foot">
+        <span class="side-dot"></span>
+        <span id="sideStatus">系统运行中</span>
+        <span class="side-src" id="sideBotSource">本地模式</span>
+      </div>
+    </aside>
+    <!-- 展开侧边栏的浮层按钮（折叠后显示） -->
+    <button class="side-reveal" id="sideReveal" aria-label="展开侧边栏" hidden>
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 5v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+
+    <!-- ===================== 主区域 ===================== -->
+    <main class="main">
+      <!-- 页面主标题：视觉上已由侧栏品牌承担，这里保留给屏幕阅读器，避免标题层级跳级 -->
+      <h1 class="sr-only">Lingo 智能体调度台</h1>
+      <!-- 页头 -->
+      <header class="page-head">
+        <div class="page-actions">
+          <img class="page-logo" src="./brand-assets/lingo-primary-lockup.png" alt="" aria-hidden="true" />
+          <div class="api-mode" id="apiMode" data-mode="unknown" title="真实 API / 演示模式">
+            <span class="api-dot"></span><span id="apiModeText">检测中…</span>
+          </div>
+          <div class="live-pill" id="livePill" title="数据每 0.8 秒刷新">
+            <span class="dot"></span><span id="liveText">实时运行中</span>
+          </div>
+          <button class="btn btn-ghost" id="btnPause" aria-pressed="false">
+            <svg class="btn-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6v12M15 6v12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span id="btnPauseText">暂停</span>
+          </button>
+          <button class="btn btn-ghost" id="btnReset">
+            <svg class="btn-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6M4 4v4.5h4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            重置
+          </button>
+          <!-- 桌宠开关 + 通知中心：打包成一组，换行时不会被拆开 -->
+          <span class="actions-group">
+            <button class="btn btn-ghost" id="btnPet" aria-pressed="true" title="Lingo 桌宠：自由走动 / 安静待命">
+              <svg class="btn-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="8" width="14" height="10" rx="3" stroke="currentColor" stroke-width="2"/><path d="M12 4v4M9 13h.01M15 13h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <span id="btnPetText">桌宠</span>
+            </button>
+            <button class="btn btn-ghost notif-btn" id="btnNotif" aria-haspopup="dialog" aria-expanded="false" aria-controls="notifPanel">
+              <svg class="btn-ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3a5 5 0 0 0-5 5v3.6L5.4 15h13.2L17 11.6V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              通知
+              <span class="notif-count" id="notifCount" hidden aria-hidden="true">0</span>
+            </button>
+          </span>
+        </div>
+      </header>
+
+      <!-- ============ 仪表盘概览 ============ -->
+      <section class="dashboard" id="dashboard" aria-label="仪表盘概览">
+        <!-- 实时状态播报：完整语义，不抢焦点（技能 §1 contextual-live-badge） -->
+        <p id="liveRegion" class="sr-only" role="status" aria-atomic="true"></p>
+
+        <!-- 指挥台栏头（HUD 装饰 + 状态） -->
+        <div class="console-head">
+          <span class="console-head-line" aria-hidden="true"></span>
+          <span class="console-head-clock" id="consoleClock">--:--:--</span>
+        </div>
+
+        <!-- 指挥台总控条（科技感控制台 · 垂直三栏） -->
+        <div class="console-bar" role="group" aria-label="实时总控指标">
+          <span class="console-scan" aria-hidden="true"></span>
+          <div class="console-cell">
+            <div class="cc-head">
+              <span class="console-k">TOKEN 总量</span>
+              <span class="cc-tag">LIVE</span>
+            </div>
+            <span class="console-v" id="kpiTotalTokens">0</span>
+            <span class="console-u" id="kpiTotalCost">$0.0000</span>
+            <svg class="console-spark" id="sparkTokens" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+          <div class="console-cell">
+            <div class="cc-head">
+              <span class="console-k">输入</span>
+              <span class="cc-tag">PROMPT</span>
+            </div>
+            <span class="console-v v-in" id="kpiInTokens">0</span>
+            <span class="console-u">prompt tokens · <span id="kpiInCost">$0.000000</span></span>
+            <svg class="console-spark" id="sparkIn" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+          <div class="console-cell">
+            <div class="cc-head">
+              <span class="console-k">输出</span>
+              <span class="cc-tag">COMPLETION</span>
+            </div>
+            <span class="console-v v-out" id="kpiOutTokens">0</span>
+            <span class="console-u">completion tokens · <span id="kpiOutCost">$0.000000</span></span>
+            <svg class="console-spark" id="sparkOut" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+          <div class="console-cell">
+            <div class="cc-head">
+              <span class="console-k">吞吐速率</span>
+              <span class="cc-tag">TPS</span>
+            </div>
+            <span class="console-v" id="kpiTps">0</span>
+            <span class="console-u">tokens / 秒</span>
+            <svg class="console-spark" id="sparkTps" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </div>
+          <div class="console-cell cc-gauge-cell">
+            <div class="cc-head">
+              <span class="console-k">总消耗金额</span>
+              <span class="cc-head-right">
+                <button class="cc-refresh spend-pop-btn" id="spendPopBtn" type="button"
+                        title="查看用量明细" aria-label="查看用量明细" aria-expanded="false" aria-controls="spendPop">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <span class="cc-tag">SPEND</span>
+              </span>
+            </div>
+            <div class="cc-gauge-wrap">
+              <!-- 环形消耗仪表：已消耗占「已消耗 + 当前余额」的比例 -->
+              <svg class="console-gauge" id="spendGauge" viewBox="0 0 44 44" aria-hidden="true">
+                <circle class="gauge-track" cx="22" cy="22" r="17"></circle>
+                <circle class="gauge-arc" cx="22" cy="22" r="17" id="spendGaugeArc"></circle>
+              </svg>
+              <div class="cc-gauge-txt">
+                <span class="console-v" id="kpiSpend">—</span>
+                <span class="console-u" id="kpiTasks">已完成任务 0</span>
+              </div>
+            </div>
+
+            <!-- 用量明细弹层：成本 / 估算成本 / 使用率 / 词元数 -->
+            <div class="spend-pop" id="spendPop" role="dialog" aria-label="用量明细" hidden>
+              <div class="spend-pop-row">
+                <span class="spend-pop-k">成本</span>
+                <span class="spend-pop-v" id="spendPopCost">—</span>
+              </div>
+              <div class="spend-pop-row">
+                <span class="spend-pop-k">估算成本</span>
+                <span class="spend-pop-v" id="spendPopEst">—</span>
+              </div>
+              <div class="spend-pop-row">
+                <span class="spend-pop-k">使用率</span>
+                <span class="spend-pop-v" id="spendPopRate">—</span>
+              </div>
+              <div class="spend-pop-row">
+                <span class="spend-pop-k">词元数</span>
+                <span class="spend-pop-v" id="spendPopTokens">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- API 实时余额（每个模型一个条，紧邻「活跃 AGENT」） -->
+          <div class="console-cell cc-balance-cell">
+            <div class="cc-head">
+              <span class="console-k">API 实时余额</span>
+              <span class="cc-head-right">
+                <button class="cc-refresh" id="ccBalanceRefresh" type="button" title="立即向厂商查询真实余额" aria-label="刷新余额">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 1 0-1.6 6M20 4v7h-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="cc-tag" id="ccBalanceTag">—</span>
+              </span>
+            </div>
+            <ul class="cc-balance-list" id="ccBalanceList" aria-live="polite"></ul>
+            <!-- 用量：累计 / 今天 / 本月（本地记账 + 余额推算，不依赖厂商消费接口） -->
+            <div class="cc-usage" id="ccUsage">
+              <div class="cc-usage-row">
+                <span class="cc-usage-k">累计已花</span>
+                <span class="cc-usage-v" id="ccUsageTotal">—</span>
+              </div>
+              <div class="cc-usage-row">
+                <span class="cc-usage-k">今天</span>
+                <span class="cc-usage-v" id="ccUsageToday">—</span>
+              </div>
+              <div class="cc-usage-row">
+                <span class="cc-usage-k">本月</span>
+                <span class="cc-usage-v" id="ccUsageMonth">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 进行中任务（简明列表：一眼看到正在跑什么） -->
+          <div class="console-cell cc-tasks-cell">
+            <div class="cc-head">
+              <span class="console-k">进行中的任务</span>
+              <span class="cc-tag" id="ccRunningTag">0 RUNNING</span>
+            </div>
+            <ul class="cc-task-list" id="ccTaskList" aria-live="polite">
+              <li class="cc-task-empty" id="ccTaskEmpty">暂无进行中的任务</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="panel chart-panel console-panel">
+            <div class="panel-head">
+              <h2><span class="panel-tick" aria-hidden="true"></span>Token 消耗趋势</h2>
+              <div class="panel-tools">
+                <!-- ④ 时间范围选择器 -->
+                <div class="range-seg" role="group" aria-label="时间范围">
+                  <button type="button" class="range-btn" data-range="300" aria-pressed="false">5 分钟</button>
+                  <button type="button" class="range-btn active" data-range="3600" aria-pressed="true">1 小时</button>
+                  <button type="button" class="range-btn" data-range="0" aria-pressed="false">全部</button>
+                </div>
+                <div class="legend">
+                  <span class="lg lg-in">输入 · 实线</span>
+                  <span class="lg lg-out">输出 · 虚线</span>
+                </div>
+              </div>
+            </div>
+            <!-- 图表：提供屏幕阅读器摘要 + 数据表兜底（技能 §10） -->
+            <canvas id="trendChart" height="190" role="img" aria-label="Token 消耗趋势折线图，数据见下方表格摘要"></canvas>
+            <details class="chart-table">
+              <summary>查看数据表</summary>
+              <table id="chartTable">
+                <caption class="sr-only">Token 消耗趋势数据</caption>
+                <thead><tr><th scope="col">采样</th><th scope="col">输入</th><th scope="col">输出</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </details>
+          </div>
+
+          <div class="panel quota-panel console-panel" id="quota">
+            <div class="panel-head">
+              <h2><span class="panel-tick" aria-hidden="true"></span>模型额度</h2>
+              <span class="muted" id="quotaUpdated">—</span>
+            </div>
+            <div class="quota-list" id="quotaList"></div>
+
+            <!-- ② 成本归因：各模型已花对比 -->
+            <div class="cost-attr">
+              <div class="cost-attr-head">
+                <h3>成本归因</h3>
+                <span class="muted" id="costAttrTotal">$0.0000</span>
+              </div>
+              <div class="cost-attr-list" id="costAttrList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ Agent 卡片区 ============ -->
+      <section class="agents-section" id="agents">
+        <div class="section-head">
+          <div class="head">
+            <span class="no">02</span>
+            <div>
+              <h2>Agent 监控</h2>
+              <p>每个 AI 实时消耗与产出</p>
+            </div>
+          </div>
+          <span class="muted" id="agentCountHint">共 0 个</span>
+        </div>
+        <div class="agent-grid" id="agentGrid"></div>
+        <div class="empty-state" id="emptyState">
+          <button class="empty-bot-btn" id="emptyBot" type="button" aria-label="Lingo 助手：点击派发新任务">
+            <img class="empty-bot" src="./brand-assets/lingo-robot.png" alt="" aria-hidden="true" />
+            <span class="empty-bot-cta">派发任务</span>
+          </button>
+          <p>还没有 Agent。点击机器人或右上角「派发新任务」开始。</p>
+        </div>
+      </section>
+
+      <!-- ============ ③ Trace 明细表（可下钻） ============ -->
+      <section class="trace-section console-panel" id="traces" aria-labelledby="traceTitle">
+        <div class="panel-head">
+          <h2 id="traceTitle"><span class="panel-tick" aria-hidden="true"></span>运行明细 · Trace</h2>
+          <span class="muted" id="traceHint">共 0 条</span>
+        </div>
+        <div class="trace-scroll">
+          <table class="trace-table" id="traceTable">
+            <caption class="sr-only">每次 Agent 运行的明细，含输入、输出、耗时、成本与状态</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="col-exp" aria-label="展开"></th>
+                <th scope="col" class="sortable" data-sort="createdAt" aria-sort="descending">时间</th>
+                <th scope="col" class="sortable" data-sort="name">Agent</th>
+                <th scope="col" class="sortable" data-sort="model">模型</th>
+                <th scope="col" class="sortable num" data-sort="input">输入</th>
+                <th scope="col" class="sortable num" data-sort="output">输出</th>
+                <th scope="col" class="sortable num" data-sort="latency">耗时</th>
+                <th scope="col" class="sortable num" data-sort="cost">成本</th>
+                <th scope="col" class="sortable" data-sort="status">状态</th>
+              </tr>
+            </thead>
+            <tbody id="traceBody"></tbody>
+          </table>
+        </div>
+        <p class="trace-empty" id="traceEmpty">暂无运行记录。派发任务后会出现在这里。</p>
+      </section>
+
+      <!-- ============ 本机 AI 活动（opencode 等，只读本地库） ============ -->
+      <section class="trace-section console-panel" id="ocActivity" aria-labelledby="ocTitle">
+        <div class="panel-head">
+          <h2 id="ocTitle"><span class="panel-tick" aria-hidden="true"></span>本机 AI 活动 · opencode</h2>
+          <span class="muted" id="ocHint">读取中…</span>
+        </div>
+        <!-- 历史总计：opencode 全部会话 + 本调度台本地账本，两者都会自动累加 -->
+        <div class="cc-usage" id="ocTotals">
+          <div class="cc-usage-row">
+            <span class="cc-usage-k">历史 token</span>
+            <span class="cc-usage-v" id="ocTotalTokens">—</span>
+          </div>
+          <div class="cc-usage-row">
+            <span class="cc-usage-k">历史花费</span>
+            <span class="cc-usage-v" id="ocTotalCost">—</span>
+          </div>
+        </div>
+        <div class="trace-scroll">
+          <table class="trace-table">
+            <caption class="sr-only">本机正在进行与最近的 AI 会话</caption>
+            <thead>
+              <tr>
+                <th scope="col">状态</th>
+                <th scope="col">会话</th>
+                <th scope="col">目录</th>
+                <th scope="col">模型</th>
+                <th scope="col" class="num">输入</th>
+                <th scope="col" class="num">输出</th>
+                <th scope="col" class="num">成本</th>
+                <th scope="col">最近活动</th>
+              </tr>
+            </thead>
+            <tbody id="ocBody"></tbody>
+          </table>
+        </div>
+        <p class="trace-empty" id="ocEmpty" hidden></p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== 技能库抽屉（读取本地 skill） ===================== -->
+  <div class="skill-scrim" id="skillScrim" hidden></div>
+  <aside class="skill-panel" id="skillPanel" role="dialog" aria-modal="false"
+         aria-labelledby="skillTitle" hidden tabindex="-1">
+    <div class="skill-head">
+      <div class="head">
+        <span class="no">04</span>
+        <div>
+          <h3 id="skillTitle">技能库</h3>
+          <p id="skillSub">本地 SKILL.md · 自动按需注入</p>
+        </div>
+      </div>
+      <div class="skill-head-actions">
+        <button class="skill-act" id="skillReload" type="button" title="重新扫描目录">重扫</button>
+        <button class="skill-close" id="skillClose" type="button" aria-label="关闭技能库">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="skill-toolbar">
+      <input class="skill-search" id="skillSearch" type="search" placeholder="搜索技能…" aria-label="搜索技能" />
+      <label class="skill-onlyon">
+        <input type="checkbox" id="skillOnlyOn" /> 只看启用
+      </label>
+    </div>
+    <div class="skill-summary" id="skillSummary"></div>
+    <div class="skill-list" id="skillList" role="list"></div>
+    <div class="skill-detail" id="skillDetail" hidden>
+      <div class="skill-detail-head">
+        <button class="skill-back" id="skillBack" type="button">← 返回列表</button>
+        <span class="skill-detail-scope" id="skillDetailScope"></span>
+      </div>
+      <h4 id="skillDetailName"></h4>
+      <div class="skill-detail-body" id="skillDetailBody"></div>
+    </div>
+  </aside>
+
+  <!-- ===================== 自建通知中心 ===================== -->
+  <div class="notif-scrim" id="notifScrim" hidden></div>
+  <aside class="notif-panel" id="notifPanel" role="dialog" aria-modal="false"
+         aria-labelledby="notifTitle" hidden tabindex="-1">
+    <div class="notif-head">
+      <div class="head">
+        <span class="no">03</span>
+        <div>
+          <h3 id="notifTitle">通知中心</h3>
+          <p id="notifSub">告警规则 · 消息记录</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="notifClose" aria-label="关闭通知中心">×</button>
+    </div>
+
+    <div class="notif-body">
+      <!-- 告警规则 -->
+      <section class="notif-section" aria-labelledby="rulesTitle">
+        <h4 id="rulesTitle">告警规则</h4>
+
+        <label class="rule-row">
+          <span class="rule-info">
+            <b>额度阈值告警</b>
+            <small>模型额度使用超过阈值时提醒</small>
+          </span>
+          <span class="rule-control">
+            <input type="number" id="ruleThreshold" min="10" max="100" step="5" value="85"
+                   aria-label="额度告警阈值百分比" /> <i>%</i>
+          </span>
+        </label>
+
+        <label class="rule-row">
+          <span class="rule-info">
+            <b>任务完成提醒</b>
+            <small>Agent 产出完成时记录一条消息</small>
+          </span>
+          <span class="rule-control">
+            <input type="checkbox" id="ruleOnDone" class="switch" checked aria-label="任务完成提醒" />
+          </span>
+        </label>
+
+        <label class="rule-row">
+          <span class="rule-info">
+            <b>系统级通知</b>
+            <small>使用浏览器原生通知（本地，非第三方）</small>
+          </span>
+          <span class="rule-control">
+            <input type="checkbox" id="ruleDesktop" class="switch" aria-label="系统级通知" />
+          </span>
+        </label>
+      </section>
+
+      <!-- 消息列表 -->
+      <section class="notif-section" aria-labelledby="listTitle">
+        <div class="notif-list-head">
+          <h4 id="listTitle">消息记录</h4>
+          <button class="link-btn" id="notifClear" type="button">清空</button>
+        </div>
+        <ul class="notif-list" id="notifList" aria-live="polite"></ul>
+        <p class="notif-empty" id="notifEmpty">暂无通知。派发任务或额度变化时会出现在这里。</p>
+      </section>
+    </div>
+  </aside>
+
+  <!-- ===================== 派发任务弹窗 ===================== -->
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-head">
+        <h3 id="modalTitle">派发新任务</h3>
+        <button class="icon-btn" id="modalClose" aria-label="关闭">×</button>
+      </div>
+      <form id="dispatchForm" class="modal-body">
+        <label class="field">
+          <span>选择模型</span>
+          <select id="fieldModel"></select>
+        </label>
+        <label class="field">
+          <span>Agent 名称（可选）</span>
+          <input id="fieldName" type="text" placeholder="例如：文案助手" />
+        </label>
+        <label class="field">
+          <span>任务内容</span>
+          <textarea id="fieldTask" rows="4" placeholder="描述要派发给这个 AI 的工作内容…"></textarea>
+        </label>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" id="modalCancel">取消</button>
+          <button type="submit" class="btn btn-primary">派发</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================== Lingo 桌宠（自由走动） =====================
+       电子宠物：鼠标移动时在原地活动，系统空闲后自由漫游。
+       有任务/通知时弹出「对话框」——像聊天窗口一样有头像、消息与操作。 -->
+  <div class="pet" id="pet" hidden>
+    <!-- 微信式悬浮通知（不点开也自己弹，5~10s 自动隐藏） -->
+    <div class="pet-toast-stack" id="petToastStack" aria-hidden="true"></div>
+    <!-- 对话框（GPT 风格聊天窗） -->
+    <div class="pet-dialog" id="petDialog" hidden>
+      <div class="pet-dialog-head">
+        <img class="pet-dialog-ava" src="./brand-assets/lingo-robot-head.png" alt="" aria-hidden="true" />
+        <div class="pet-dialog-who">
+          <b>Lingo 助手</b>
+          <span id="petDialogStatus">在线</span>
+        </div>
+        <button class="pet-dialog-clear" id="petDialogClear" type="button" aria-label="清空对话" title="清空对话">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="pet-dialog-min" id="petDialogMin" type="button" aria-label="收起对话框">—</button>
+      </div>
+      <!-- 消息列表：可滚动长列表 + 时间线 -->
+      <div class="pet-dialog-body" id="petDialogBody" role="log" aria-live="polite" aria-label="Lingo 助手对话"></div>
+      <!-- 快捷操作 -->
+      <div class="pet-dialog-quick" id="petDialogQuick">
+        <button class="pet-chip" data-ask="现在用了多少 token？" type="button">用了多少 token？</button>
+        <button class="pet-chip" data-ask="哪个模型余额低了？" type="button">余额还好吗？</button>
+        <button class="pet-chip" data-ask="现在有几个任务在跑？" type="button">在跑什么？</button>
+      </div>
+      <!-- 待发送的图片预览条 -->
+      <div class="pet-attach-bar" id="petAttachBar" hidden>
+        <span class="pet-attach-label">待发送图片</span>
+        <div class="pet-attach-list" id="petAttachList"></div>
+      </div>
+      <!-- 输入区（GPT 风格） -->
+      <form class="pet-dialog-input" id="petDialogForm">
+        <button class="pet-imgbtn" id="petImgBtn" type="button" aria-label="发送图片" title="发送图片（识别图片内容）">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="2"/>
+            <circle cx="8.5" cy="9.5" r="1.6" fill="currentColor"/>
+            <path d="M4 17l4.5-4.5L12 16l3-3 5 5" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <input type="file" id="petImgFile" accept="image/*" multiple hidden />
+        <textarea class="pet-input" id="petInput" rows="1" placeholder="给 Lingo 助手发消息…"
+          aria-label="输入消息" autocomplete="off"></textarea>
+        <button class="pet-send" id="petSend" type="submit" aria-label="发送">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12l16-8-6 8 6 8-16-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+      <!-- 底部工具入口 -->
+      <div class="pet-dialog-foot">
+        <button class="pet-dialog-act primary" id="petDialogDispatch" type="button">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          派发新任务
+        </button>
+        <button class="pet-dialog-act" id="petDialogNotif" type="button">查看通知</button>
+      </div>
+    </div>
+    <!-- 机器人本体（可点） -->
+    <button class="pet-body" id="petBody" type="button" aria-label="Lingo 助手：点击打开对话框">
+      <span class="pet-shadow" aria-hidden="true"></span>
+      <span class="pet-sway" id="petSway" aria-hidden="true">
+        <img class="pet-img" id="petImg" src="./brand-assets/lingo-robot.png" alt="" aria-hidden="true" />
+      </span>
+      <span class="pet-mood" aria-hidden="true"></span>
+      <!-- 未读角标 -->
+      <span class="pet-badge" id="petBadge" hidden aria-hidden="true">0</span>
+    </button>
+    <p class="sr-only" role="status" aria-live="polite" id="petLive"></p>
+  </div>
+
+  <!-- 图片放大查看（lightbox） -->
+  <div class="pet-lightbox" id="petLightbox" hidden role="dialog" aria-modal="true" aria-label="查看图片">
+    <img id="petLightboxImg" src="" alt="" />
+    <button class="pet-lightbox-close" id="petLightboxClose" type="button" aria-label="关闭">×</button>
+    <button class="pet-lightbox-dl" id="petLightboxDl" type="button">下载</button>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

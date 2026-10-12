@@ -1,0 +1,24 @@
+{
+  "_说明": "把这里改成你的真实密钥。也可以用环境变量覆盖（优先级更高）。改完不用重启代理，前端点「重载配置」或访问 /api/reload 即可。",
+  "_安全": "此文件只在本机使用，请勿提交到 git。含密钥的文件建议加入 .gitignore。",
+  "providers": {
+    "openai": {
+      "baseUrl": "https://api.openai.com",
+      "apiKey": "",
+      "_备选": "国内兼容服务示例：DeepSeek https://api.deepseek.com ；阿里百炼 https://dashscope.aliyuncs.com/compatible-mode ；Moonshot https://api.moonshot.cn"
+    },
+    "anthropic": {
+      "baseUrl": "https://api.anthropic.com",
+      "apiKey": ""
+    },
+    "ollama": {
+      "baseUrl": "http://127.0.0.1:11434"
+    }
+  },
+
+  "_skillDirs说明": "额外要扫描的 skill 目录。内置已扫 4 个：项目 ./skills、~/.agents/skills、~/.codex/skills、~/.dsh/skills。这里加的是「额外」目录，支持 ~ 展开，同名 skill 以自定义目录优先。",
+  "skillDirs": [
+    "D:\\my-skills",
+    { "dir": "E:\\team\\skills", "scope": "team" }
+  ]
+}

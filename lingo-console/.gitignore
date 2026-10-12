@@ -1,0 +1,18 @@
+# 密钥文件（含 API Key，切勿提交）
+.secrets.json
+.secrets.json.bad
+config.json
+
+# 运行时数据（本机累计已花 / 充值基线等，含个人数据）
+data/
+
+# 依赖与日志
+node_modules/
+*.log
+npm-debug.log*
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
