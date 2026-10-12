@@ -1,0 +1,34 @@
+{
+  "platform": "youzan",
+  "mode": "monitor",
+  "notify": {
+    "webhook": "",
+    "wechat": false
+  },
+  "timeSync": {
+    "enabled": true,
+    "source": "taobao"
+  },
+  "browser": {
+    "headless": false,
+    "locale": "zh-CN"
+  },
+  "accounts": [
+    { "id": "wx-a", "label": "微信A", "storage": "data/wx-a.json" },
+    { "id": "wx-b", "label": "微信B", "storage": "data/wx-b.json" }
+  ],
+  "targets": [
+    {
+      "id": "t1",
+      "shop": "TWOI Design Lab成都店",
+      "item": "成都店8月15日-8月17日进店时段预约",
+      "url": "https://shop206077374.m.youzan.com/v2/showcase/tag?alias=2oq0qsy7t72iu",
+      "store": "成都店",
+      "slots": ["10:00-11:00", "14:00-15:00", "16:00-17:00"],
+      "qty": 1,
+      "intervalMs": 800,
+      "strategy": "fill-all",
+      "accounts": ["wx-a"]
+    }
+  ]
+}

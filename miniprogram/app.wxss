@@ -1,0 +1,14 @@
+@import "./styles/pixel-font.wxss";
+
+/* ===== Lingo 抢购助手 · 像素风全局（8-bit · 硬边 · 硬阴影）===== */
+page {
+  background: #f6f1e8;
+  color: #241033;
+  font-family: "LingoScreen", "Fusion Pixel 12px proportional zh_hans", "Zpix", "Ark Pixel 12px zh_hans", "Microsoft YaHei UI", sans-serif;
+  font-size: 24rpx;
+  -webkit-font-smoothing: none;
+}
+
+/* 小程序 button 自带圆角与 ::after 描边，像素风里都要抹掉 */
+button { border-radius: 0; }
+button::after { border: none; }

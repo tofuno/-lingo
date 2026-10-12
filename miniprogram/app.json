@@ -1,0 +1,11 @@
+{
+  "pages": ["pages/index/index"],
+  "window": {
+    "navigationBarTitleText": "Lingo · 抢购助手",
+    "navigationBarBackgroundColor": "#5b35c8",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#faf7f3"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

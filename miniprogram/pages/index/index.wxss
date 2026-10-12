@@ -1,0 +1,51 @@
+.wrap { padding: 28rpx; }
+
+/* ===== Lingo 商标 ===== */
+.brand { display: flex; align-items: center; justify-content: center; gap: 16rpx; padding: 22rpx 0 12rpx; }
+.brand-head { height: 64rpx; width: 64rpx; }
+.brand-lockup { height: 52rpx; }
+
+/* ===== 像素卡片 ===== */
+.card {
+  background: #fff;
+  border: 4rpx solid #241033;
+  border-radius: 0;
+  padding: 28rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 8rpx 8rpx 0 #241033;
+}
+
+.row { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; border-bottom: 4rpx solid #241033; }
+.row:last-child { border-bottom: 0; padding-bottom: 0; }
+.k { color: #6a6270; font-size: 22rpx; }
+.v { font-size: 26rpx; font-weight: 700; color: #241033; }
+.v.on { color: #1c7d55; }
+.v.off { color: #6a6270; }
+.title { font-size: 26rpx; font-weight: 700; margin-bottom: 18rpx; letter-spacing: 1rpx; }
+
+/* 分段控件：改成硬边三格，而不是圆角胶囊 */
+.seg { display: flex; background: #fff; border: 4rpx solid #241033; border-radius: 0; overflow: hidden; }
+.segitem { flex: 1; text-align: center; font-size: 22rpx; color: #6a6270; padding: 18rpx 0; border-radius: 0; }
+.segitem + .segitem { border-left: 4rpx solid #241033; }
+.segitem.on { background: #5b35c8; color: #fff; font-weight: 700; }
+
+.tip { color: #6a6270; font-size: 20rpx; margin-top: 16rpx; line-height: 1.6; }
+
+/* 按钮：硬边 + 硬阴影，按下位移 */
+.actions { display: flex; gap: 20rpx; margin-top: 8rpx; }
+.btn {
+  flex: 1;
+  border: 4rpx solid #241033;
+  border-radius: 0;
+  font-size: 24rpx;
+  font-weight: 700;
+  padding: 18rpx 0;
+  line-height: 1.6;
+  box-shadow: 8rpx 8rpx 0 #241033;
+}
+.btn.primary { background: #5b35c8; color: #fff; }
+.btn.ghost { background: #fff; color: #241033; }
+.btn.primary:active,
+.btn.ghost:active { transform: translate(8rpx, 8rpx); box-shadow: none; }
+
+.foot { text-align: center; color: #6a6270; font-size: 20rpx; margin-top: 20rpx; }

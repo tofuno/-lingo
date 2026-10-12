@@ -1,0 +1,33 @@
+<view class="wrap">
+  <view class="brand">
+    <image class="brand-head" src="/assets/robot-head.png" mode="heightFix"></image>
+    <image class="brand-lockup" src="/assets/lingo-lockup.png" mode="heightFix"></image>
+  </view>
+
+  <view class="card">
+    <view class="row">
+      <text class="k">状态</text>
+      <text class="v {{running ? 'on' : 'off'}}">{{running ? '● 运行中' : '○ 未运行'}}</text>
+    </view>
+    <view class="row"><text class="k">当前模式</text><text class="v">{{mode}}</text></view>
+    <view class="row"><text class="k">平台</text><text class="v">{{platform}}</text></view>
+    <view class="row"><text class="k">账号 / 目标</text><text class="v">{{accounts}} / {{targets}}</text></view>
+  </view>
+
+  <view class="card">
+    <view class="title">合规模式</view>
+    <view class="seg">
+      <view class="segitem {{mode==='monitor'?'on':''}}" bindtap="setMode" data-mode="monitor">监控提醒</view>
+      <view class="segitem {{mode==='semi'?'on':''}}" bindtap="setMode" data-mode="semi">半自动</view>
+      <view class="segitem {{mode==='full'?'on':''}}" bindtap="setMode" data-mode="full">全自动</view>
+    </view>
+    <view class="tip">监控提醒最安全；全自动可能触发平台风控。</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn ghost" bindtap="stop">暂停</button>
+    <button class="btn primary" bindtap="start">开始抢购</button>
+  </view>
+
+  <view class="foot">服务端：{{base}}</view>
+</view>

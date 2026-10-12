@@ -1,0 +1,78 @@
+{
+  "name": "ticket-grabber",
+  "productName": "Lingo抢购助手",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lingo 出品的多平台抢购 / 余票监控工具（有赞 H5 优先，合规优先）",
+  "author": "Lingo",
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "app": "electron .",
+    "smoke": "node src/smoke.js",
+    "login": "node src/index.js login",
+    "monitor": "node src/index.js run --mode monitor",
+    "semi": "node src/index.js run --mode semi",
+    "full": "node src/index.js run --mode full",
+    "pack": "electron-builder --win --dir",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.lingo.ticketgrabber",
+    "productName": "Lingo抢购助手",
+    "copyright": "Lingo",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "desktop"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "desktop/icon.ico",
+      "src/**/*",
+      "public/**/*",
+      "!src/config.json",
+      "!data/**",
+      "!miniprogram/**",
+      "!**/*.map",
+      "!**/*.md"
+    ],
+    "win": {
+      "icon": "desktop/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Lingo抢购助手",
+      "artifactName": "Lingo-TicketGrabber-${version}-setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Lingo-TicketGrabber-${version}-portable.${ext}"
+    }
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.15.3"
+  }
+}

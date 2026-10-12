@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#5b35c8" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="抢购" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/robot-head.png" />
+<link rel="apple-touch-icon" href="assets/icon-192.png" />
+<title>Lingo · 抢购控制台</title>
+<style>
+:root{
+  --p:#5b35c8; --p-soft:#efe9fb; --ink:#281333; --muted:#77717d; --line:#e9e4de;
+  --surface:#fff; --page:#faf7f3; --green:#318367; --green-soft:#eaf6f1;
+  --amber:#835d00; --amber-soft:#fff4cc; --coral:#c2402f; --coral-soft:#ffecea;
+  --cyan:#08708a; --cyan-soft:#e3f5fa; --radius:14px;
+  --shadow:0 1px 2px rgb(40 19 51/4%),0 6px 20px rgb(40 19 51/5%);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:Inter,-apple-system,"PingFang SC","Microsoft YaHei UI",sans-serif;font-size:14px;
+  padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:10px;padding:12px 16px;
+  padding-top:calc(12px + env(safe-area-inset-top));background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar h1{font-size:15px;margin:0;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--p-soft);color:var(--p);white-space:nowrap}
+.pill.gray{background:#f1eef4;color:var(--muted)}
+.pill.green{background:var(--green-soft);color:var(--green)}
+.pill.amber{background:var(--amber-soft);color:var(--amber)}
+.pill.coral{background:var(--coral-soft);color:var(--coral)}
+.pill.cyan{background:var(--cyan-soft);color:var(--cyan)}
+.grow{flex:1}
+.wrap{padding:14px 16px;max-width:1320px;margin:0 auto}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 8px}
+.card-h h2{font-size:14.5px;margin:0}
+.card-h p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.pad{padding:0 16px 16px}
+
+.item{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px}
+.thumb{width:52px;height:52px;border-radius:12px;background:#f3eef8;display:grid;place-items:center;font-size:24px;flex:0 0 auto}
+.item .t{font-weight:700;font-size:13.5px;line-height:1.35}
+.item .m{color:var(--muted);font-size:12px;margin-top:4px}
+.price{color:var(--coral);font-weight:800}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:12px}
+.fields .fl{color:var(--muted);font-size:12px;margin-bottom:4px}
+.fields .fv{font-weight:600;font-size:13px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:12px;padding:5px 11px;border-radius:999px;background:#f1eef4;color:var(--muted)}
+.chip.on{background:var(--p-soft);color:var(--p);font-weight:600}
+
+.log{font-family:ui-monospace,Consolas,Menlo,monospace;font-size:11.5px;line-height:1.85;
+  padding:10px 14px 14px;max-height:300px;overflow:auto;background:#1c1424;color:#e9e3f5;margin:0 10px 10px;border-radius:10px}
+.log .ts{color:#9b8ec0}.log .ok{color:#8fe3b0}.log .warn{color:#f0c674}.log .err{color:#ff8f7a}
+
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;gap:10px;
+  padding:10px 16px;padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  background:var(--surface);border-top:1px solid var(--line)}
+.btn{border:0;border-radius:12px;min-height:46px;padding:0 16px;font-size:14px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.btn.primary{background:var(--p);color:#fff;flex:1}
+.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.btn.soft{background:var(--amber-soft);color:var(--amber)}
+
+.note{margin:0 0 14px;padding:12px 14px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:11.5px;background:#fff;line-height:1.7}
+.warn-box{padding:12px 14px;border-radius:12px;background:var(--coral-soft);color:#8a2a1d;font-size:11.5px;line-height:1.7;border:1px solid #f3c3bb}
+
+.switch{width:42px;height:24px;border-radius:999px;background:#d9d3e0;position:relative;display:inline-block;transition:.2s;cursor:pointer;flex:0 0 auto}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on{background:var(--p)}
+.switch.on::after{left:21px}
+.rowline{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}
+.rowline:last-of-type{border-bottom:0}
+.modal{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgb(40 19 51/45%);padding:20px}
+.modal.show{display:flex}
+.modal .box{background:#fff;border-radius:16px;padding:20px;width:290px;text-align:center}
+.modal h3{margin:0 0 4px;font-size:15px}
+.modal p{margin:0 0 14px;color:var(--muted);font-size:12px}
+.qr{width:180px;height:180px;margin:0 auto;border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:repeat(11,1fr);grid-auto-rows:1fr;gap:2px;padding:10px;box-sizing:border-box}
+.qr i{background:transparent;border-radius:1px}
+
+.inp{width:100%;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:13px;background:#fff;color:var(--ink)}
+.lbl{color:var(--muted);font-size:12px;margin:0 0 5px;display:block}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px}
+.full{grid-column:1 / -1}
+
+/* 桌面增强 */
+@media(min-width:760px){
+  body{padding-bottom:16px}
+  /* 底部工具条：桌面也常驻，随时能开抢 / 暂停 */
+  .actionbar{position:sticky;bottom:0;background:var(--page);border-top:2px solid var(--line);padding:12px 16px;margin:0;justify-content:flex-end}
+  .actionbar .btn.primary{flex:0 0 auto;padding:0 26px}
+}
+/* ===== 设计增强（ui-ux-pro-max：密度8 / 无障碍 / 排版 / 响应式）===== */
+:root { --mono: "JetBrains Mono","Fira Code",ui-monospace,SFMono-Regular,Menlo,monospace; }
+body { font-size: 15px; }
+.fv, .kpi .v, .pval, .wallet-bal, .big, .mono { font-variant-numeric: tabular-nums; }
+.fields .fv, .kpi .v { font-family: var(--mono); }
+button, .chip, .btn, .segitem, [data-route], [data-plat], [data-mode] { cursor: pointer; }
+button:focus-visible, .chip:focus-visible, .btn:focus-visible, a:focus-visible,
+input:focus-visible, select:focus-visible {
+  outline: 3px solid rgb(91 53 200 / 45%); outline-offset: 2px; border-radius: 8px;
+}
+/* 密度 8：紧凑仪表盘间距 */
+.card-h { padding: 12px 14px 6px; }
+.pad { padding: 0 14px 14px; }
+.rowline { padding: 9px 0; }
+.thumb { color: var(--p); }
+.thumb svg { width: 26px; height: 26px; }
+/* 过渡统一 150–300ms */
+.btn, .chip, .switch, .rowline, .item, .card { transition: all 200ms ease; }
+/* 响应式：1440 / 1024 / 768 / 375 */
+@media (max-width: 1024px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 375px) { .kpis { grid-template-columns: 1fr; } .wrap { padding: 10px 12px; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ===== 暗色主题（ui-ux-pro-max 建议：Glassmorphism + 深色 + 绿色强调）===== */
+body.dark {
+  --p: #22c55e; --p-soft: rgba(34, 197, 94, .16);
+  --ink: #f8fafc; --muted: #94a3b8;
+  --line: rgba(255, 255, 255, .12);
+  --surface: rgba(27, 35, 54, .72);
+  --page: #0f172a;
+  --green: #22c55e; --green-soft: rgba(34, 197, 94, .16);
+  --amber: #fbbf24; --amber-soft: rgba(251, 191, 36, .16);
+  --coral: #ef4444; --coral-soft: rgba(239, 68, 68, .16);
+  --cyan: #38bdf8; --cyan-soft: rgba(56, 189, 248, .16);
+  color: #f8fafc;
+  background:
+    radial-gradient(1000px 500px at 85% -10%, rgba(34, 197, 94, .12), transparent 70%),
+    radial-gradient(900px 480px at 0% 110%, rgba(56, 189, 248, .08), transparent 70%),
+    #0f172a;
+}
+body.dark .topbar { background: rgba(15, 23, 42, .72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: rgba(255, 255, 255, .10); }
+body.dark .card,
+body.dark .kpi { background: rgba(27, 35, 54, .72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: rgba(255, 255, 255, .12); box-shadow: 0 1px 2px rgb(0 0 0 / .35), 0 8px 24px rgb(0 0 0 / .35); }
+body.dark .btn.ghost { background: rgba(255, 255, 255, .06); color: #f8fafc; border-color: rgba(255, 255, 255, .14); }
+body.dark .btn.primary { background: #22c55e; color: #0f172a; }
+body.dark .chip { background: rgba(255, 255, 255, .06); color: #94a3b8; }
+body.dark .chip.on { background: rgba(34, 197, 94, .18); color: #22c55e; }
+body.dark .inp { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .14); color: #f8fafc; }
+body.dark .switch { background: rgba(255, 255, 255, .18); }
+body.dark .switch.on { background: #22c55e; }
+body.dark .thumb { background: rgba(34, 197, 94, .14); color: #22c55e; }
+body.dark .item { border-color: rgba(255, 255, 255, .12); }
+body.dark .note { background: rgba(255, 255, 255, .04); border-color: rgba(255, 255, 255, .14); color: #94a3b8; }
+body.dark .warn-box { background: rgba(239, 68, 68, .14); color: #fca5a5; border-color: rgba(239, 68, 68, .30); }
+body.dark .pill.gray { background: rgba(255, 255, 255, .08); color: #94a3b8; }
+body.dark .actionbar { background: rgba(15, 23, 42, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-color: rgba(255, 255, 255, .10); }
+body.dark .modal { background: rgb(2 6 23 / 60%); }
+body.dark .modal .box { background: #1b2336; border: 1px solid rgba(255, 255, 255, .12); }
+body.dark .qr { border-color: rgba(255, 255, 255, .14); }
+body.dark .qr i { background: rgba(255, 255, 255, .85); }
+body.dark .log { background: #0b1220; }
+
+/* ===== Lingo 商标 ===== */
+.brand{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.lingo-lockup{height:19px;width:auto;display:block}
+.lingo-lockup.sm{height:15px}
+.mark-dark{display:none}
+body.dark .mark-light{display:none}
+body.dark .mark-dark{display:block}
+.foot-brand{display:flex;align-items:center;justify-content:center;gap:7px;margin:14px 0 6px;color:var(--muted);font-size:11.5px}
+@media (max-width:560px){ .lingo-lockup{height:17px} }
+
+/* ===== Lingo 桌宠（轻量版 · 搬运自 Lingo 调度台并裁剪）=====
+ * 固定浮层，pointer-events:none —— 只有机器人本体可点，其余区域不挡操作。
+ * 位置由 Pet.x / Pet.y（视口坐标）驱动，JS 做简单物理（加速/减速/边缘约束）。 */
+.pet{position:fixed;left:0;top:0;z-index:30;pointer-events:none;will-change:transform;--pet-size:72px}
+.pet.is-hidden{display:none}
+.pet-img{display:block;width:var(--pet-size);height:auto;filter:drop-shadow(0 6px 12px rgb(40 19 51/.18))}
+.pet-sway{position:relative;display:block;transform-origin:50% 92%;animation:petBreath 3.4s cubic-bezier(.45,.05,.55,.95) infinite}
+.pet:not(.walking):not(.dragging) .pet-body{transform:rotate(var(--gaze-tilt,0deg));transform-origin:50% 100%;transition:transform 160ms cubic-bezier(.22,.61,.36,1)}
+@keyframes petBreath{0%,100%{transform:translateY(0) scaleY(1) scaleX(1)}45%{transform:translateY(-1.2px) scaleY(1.022) scaleX(.994)}70%{transform:translateY(-.4px) scaleY(1.008) scaleX(.998)}}
+.pet-sway.blink{animation:petBreath 3.4s cubic-bezier(.45,.05,.55,.95) infinite,petBlink 160ms cubic-bezier(.45,.05,.55,.95)}
+@keyframes petBlink{0%,100%{filter:none}50%{filter:brightness(1.04) contrast(1.06)}}
+.pet.facing-left .pet-img,.pet.facing-left .pet-shadow{transform:scaleX(-1)}
+.pet-body{position:relative;display:block;padding:0;border:0;background:none;cursor:grab;pointer-events:auto;transform-origin:50% 100%;touch-action:none;-webkit-user-select:none;user-select:none}
+.pet-body:active{cursor:grabbing}
+.pet.dragging{z-index:45}
+.pet.dragging .pet-body{cursor:grabbing;transform:scale(1.06) translateY(-6px);filter:drop-shadow(0 14px 24px rgb(40 19 51/.38))}
+.pet.dragging .pet-sway{animation:petDangle 900ms cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes petDangle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.pet.dragging .pet-shadow{transform:scaleX(1.15);opacity:.3;animation:none}
+.pet.walking .pet-body{animation:petStep 620ms cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes petStep{0%{transform:translateY(0)}12%{transform:translateY(1.6px)}26%{transform:translateY(-1px)}50%{transform:translateY(0)}62%{transform:translateY(1.6px)}76%{transform:translateY(-1px)}100%{transform:translateY(0)}}
+.pet.walking .pet-sway{animation:petStride 620ms cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes petStride{0%{transform:rotate(-5deg) translateY(0) scaleY(1.03)}25%{transform:rotate(-1deg) translateY(-3.5px) scaleY(.98)}50%{transform:rotate(5deg) translateY(0) scaleY(1.03)}75%{transform:rotate(1deg) translateY(-3.5px) scaleY(.98)}100%{transform:rotate(-5deg) translateY(0) scaleY(1.03)}}
+.pet-shadow{position:absolute;left:50%;bottom:-6px;width:calc(var(--pet-size) * .62);height:10px;margin-left:calc(var(--pet-size) * -.31);background:radial-gradient(ellipse at center,rgb(40 19 51/.32),transparent 70%);border-radius:50%;transition:transform 200ms,opacity 200ms}
+.pet.walking .pet-shadow{animation:petShadow 620ms cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes petShadow{0%,50%,100%{transform:scaleX(1);opacity:.55}25%,75%{transform:scaleX(.78);opacity:.32}}
+.pet-body[data-micro="tilt"] .pet-sway{animation:microTilt 1100ms cubic-bezier(.45,.05,.55,.95) 1}
+@keyframes microTilt{0%,100%{transform:rotate(0)}35%{transform:rotate(-6deg) translateY(-1px)}70%{transform:rotate(4deg)}}
+.pet-body[data-micro="stretch"] .pet-sway{animation:microStretch 1200ms cubic-bezier(.45,.05,.55,.95) 1}
+@keyframes microStretch{0%,100%{transform:scaleY(1) translateY(0)}40%{transform:scaleY(1.07) translateY(-3px)}70%{transform:scaleY(.97) translateY(1px)}}
+.pet-body[data-micro="look"] .pet-sway{animation:microLook 1200ms cubic-bezier(.45,.05,.55,.95) 1}
+@keyframes microLook{0%,100%{transform:rotate(0) translateX(0)}30%{transform:rotate(-2deg) translateX(-3px)}65%{transform:rotate(2deg) translateX(3px)}}
+.pet-mood{position:absolute;right:6px;top:16px;width:9px;height:9px;border-radius:50%;border:2px solid var(--page);background:var(--muted);--glow:rgb(119 113 125/.5);transition:background 200ms}
+.pet[data-mood="active"] .pet-mood{background:var(--cyan);--glow:rgb(8 112 138/.55);animation:moodPulse 1.4s cubic-bezier(.22,.61,.36,1) infinite}
+.pet[data-mood="happy"] .pet-mood{background:var(--green);--glow:rgb(49 131 103/.55)}
+.pet[data-mood="warn"] .pet-mood{background:var(--amber);--glow:rgb(131 93 0/.5)}
+.pet[data-mood="error"] .pet-mood{background:var(--coral);--glow:rgb(194 64 47/.55);animation:moodPulse 1.1s cubic-bezier(.22,.61,.36,1) infinite}
+.pet[data-mood="sleep"] .pet-mood{background:var(--muted)}
+.pet[data-mood="sleep"] .pet-img{opacity:.62}
+.pet[data-mood="sleep"] .pet-sway{animation:petSleep 5.2s cubic-bezier(.45,.05,.55,.95) infinite}
+@keyframes petSleep{0%,100%{transform:translateY(0) scaleY(1) rotate(-1.5deg)}50%{transform:translateY(2.6px) scaleY(.975) rotate(-3deg)}}
+@keyframes moodPulse{0%{box-shadow:0 0 0 0 var(--glow)}100%{box-shadow:0 0 0 8px transparent}}
+.pet.alerting .pet-img{filter:drop-shadow(0 6px 14px rgb(91 53 200/.5))}
+.pet.parked{--pet-size:52px}
+
+/* 微信式悬浮气泡（抢购事件播报） */
+.pet-toast-stack{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;z-index:3}
+.pet-toast{position:relative;width:246px;max-width:74vw;display:flex;gap:9px;align-items:flex-start;padding:10px 11px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgb(40 19 51/.26);pointer-events:auto;cursor:pointer;animation:toastIn 260ms cubic-bezier(.22,.61,.36,1) both}
+.pet-toast.out{animation:toastOut 260ms cubic-bezier(.22,.61,.36,1) both}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes toastOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(6px) scale(.97)}}
+.pet-toast::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0}
+.pet-toast.info::before{background:var(--p)}
+.pet-toast.success::before{background:var(--green)}
+.pet-toast.warn::before{background:var(--amber)}
+.pet-toast.danger::before{background:var(--coral)}
+.pet-toast-ava{width:22px;height:22px;object-fit:contain;flex:none;margin-top:1px}
+.pet-toast-body{min-width:0;flex:1}
+.pet-toast-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pet-toast-text{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:1px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pet-toast-bar{position:absolute;left:0;bottom:0;height:2px;background:var(--p);border-radius:0 0 14px 14px;animation:toastBar linear forwards}
+.pet-toast.success .pet-toast-bar{background:var(--green)}
+.pet-toast.warn .pet-toast-bar{background:var(--amber)}
+.pet-toast.danger .pet-toast-bar{background:var(--coral)}
+@keyframes toastBar{from{width:100%}to{width:0}}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ===== 像素风皮肤（8-bit · 硬边 · 无圆角 · 硬阴影）=====
+ * 正文/中文：Fusion Pixel 12px Proportional SC（12px 点阵，OFL-1.1，TakWolf）
+ * 大数字　　：Press Start 2P（8px 点阵）
+ * 关键约束：字号必须落在点阵的整数倍上 —— Fusion Pixel 用 12 / 24px，
+ *          Press Start 2P 用 16 / 24px。非整数倍会逐像素发糊。 */
+@font-face{font-family:"LingoPixelSC";src:url("assets/fonts/fusion-pixel-12px-sc.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"LingoScreen";src:url("assets/fonts/silkscreen-400.woff2") format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"LingoScreen";src:url("assets/fonts/silkscreen-700.woff2") format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"LingoPixel2P";src:url("assets/fonts/press-start-2p-400.woff2") format("woff2");font-display:swap}
+
+:root{
+  --radius:0px;
+  --pixel:"LingoPixelSC","Fusion Pixel 12px Proportional SC",-apple-system,"Microsoft YaHei UI","PingFang SC",sans-serif;
+  --shadow:3px 3px 0 rgb(36 16 51);
+  --ink:#241033; --line:#241033; --muted:#6a6270;
+  --p:#5b35c8; --p-soft:#e6dcff;
+  --green:#1c7d55; --green-soft:#d3f3e3;
+  --amber:#8f5d00; --amber-soft:#ffe6a8;
+  --coral:#cc3320; --coral-soft:#ffdfd7;
+  --cyan:#0a7ea8; --cyan-soft:#cfeeff;
+  --page:#f6f1e8; --surface:#ffffff;
+}
+
+/* 中文也吃像素字体：全局一个 12px 点阵，只有 HUD 大数字例外 */
+body,button,input,select,textarea,
+.topbar h1,.card-h h2,.card-h p,.pill,.chip,.btn,.lbl,.fl,.fields .fv,.fields .fl,
+.item .t,.item .m,.log,.foot-brand,.note,.warn-box,.rowline,.k,.v,.s,.slot,.slot .t,
+.pet-toast-title,.pet-toast-text,.hud .k,.hud .s,.hud .v.txt,.hud .dim{font-family:var(--pixel)}
+body{-webkit-font-smoothing:none;font-size:12px;line-height:1.75}
+.pill,.chip,.btn,.card-h h2,.card-h p,.fields .fv,.fields .fl,.log,.note,.warn-box,
+.item .t,.item .m,.foot-brand,.slot .t,.pet-toast-title,.pet-toast-text,.k,.v,.s{font-size:12px}
+.card-h h2{letter-spacing:1px}
+.chip{padding:6px 10px}
+.btn{letter-spacing:.5px}
+.log{line-height:1.9}
+/* HUD 大数字：Press Start 2P 16px（8px 点阵的 2 倍，清晰） */
+.hud .v{font-family:"LingoPixel2P",var(--pixel);font-size:16px}
+.hud .v.txt{font-family:var(--pixel);font-size:12px;letter-spacing:.5px}
+
+/* 点阵字体只有 400 字重：合成加粗会把像素糊掉 —— 强调改用「颜色 + 字距」 */
+.pill,.chip,.btn,.item .t,.fields .fv,.hud .v,.card-h h2,.price,.title,.v,.k,
+.note,.warn-box,.log,.foot-brand,.rowline{font-weight:400}
+b,strong{font-weight:400}
+.note b{color:var(--p)}
+.warn-box b{color:var(--coral)}
+.log b{color:var(--cyan)}
+
+/* 像素滚动条 */
+*{scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+::-webkit-scrollbar{width:12px;height:12px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border:2px solid var(--page)}
+::-webkit-scrollbar-thumb:hover{background:var(--p)}
+
+/* 硬边 + 硬阴影：去掉所有圆角与柔光 */
+.card,.kpi,.item,.thumb,.btn,.inp,.modal .box,.qr,.log,.note,.warn-box,.chip,.switch,.pill,.actionbar,.pet-toast,.pet-mood{border-radius:0}
+.card,.kpi{border:2px solid var(--line);box-shadow:var(--shadow)}
+.item,.thumb{border:2px solid var(--line)}
+.btn{border:2px solid var(--line);box-shadow:var(--shadow);background:#fff;color:var(--ink);transition:none}
+.btn.primary{background:var(--p);color:#fff}
+.btn.ghost{background:#fff}
+.btn.soft{background:var(--amber-soft);color:var(--ink)}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.chip{border:2px solid var(--line);background:#fff;color:var(--ink)}
+.chip.on{background:var(--p);color:#fff}
+.note{border:2px dashed var(--line);background:#fff}
+.warn-box{border:2px solid var(--line);background:var(--coral-soft);color:#7a2317}
+.inp{border:2px solid var(--line);background:#fff}
+.rowline{border-bottom:2px solid var(--line)}
+.switch{border:2px solid var(--line);height:22px;background:#fff}
+.switch::after{top:1px;left:1px;width:16px;height:16px;background:var(--ink)}
+.switch.on{background:var(--green)}
+.switch.on::after{left:21px;background:#fff}
+.pill{border:2px solid currentColor;background:transparent}
+.modal .box{border:2px solid var(--line);box-shadow:var(--shadow)}
+.qr{border:2px solid var(--line)}
+.log{border:2px solid var(--line)}
+.thumb{background:#fff}
+.thumb svg{stroke-width:2.2}
+
+/* 桌宠气泡一并像素化 */
+.pet-toast{border:2px solid var(--line);box-shadow:var(--shadow)}
+.pet-toast::before,.pet-toast-bar{border-radius:0}
+.pet-toast-title{font-size:11px}
+.pet-toast-text{font-size:10.5px}
+
+/* 动作按钮（.chip.act）：静止外观与原色标签完全一致，只有 hover / 按下才给反馈
+   —— 紫色只留给「已开启 / 已选中」 */
+.chip.act{cursor:pointer;background:#fff;color:var(--ink);border-color:var(--line)}
+.chip.act:hover{background:var(--p-soft);border-color:var(--p);color:var(--p)}
+.chip.act:active{transform:translate(2px,2px)}
+.card-h .chip.act{background:transparent;color:#fff;border-color:#fff}
+.card-h .chip.act:hover{background:rgb(255 255 255 / 14%);border-color:#fff;color:#fff}
+
+/* 行内小图标（替代 emoji，像素风里更一致） */
+.ico{width:14px;height:14px;flex:none;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.rowline > span{display:inline-flex;align-items:center;gap:6px}
+
+/* ===== 排版重做：8px 栅格 + 层级面板 ===== */
+
+/* HUD 状态条：四格硬拼接（8-bit 状态栏），不再是四个孤立卡片 */
+.hud{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:2px solid var(--line);box-shadow:var(--shadow);margin-bottom:16px}
+.hud-i{padding:12px 14px;border-right:2px solid var(--line);min-width:0}
+.hud-i:last-child{border-right:0}
+.hud .k{color:var(--muted)}
+.hud .v{font-family:"LingoPixel2P",var(--pixel);font-size:16px;margin-top:6px}
+.hud .v.txt{font-family:var(--pixel);font-size:12px;letter-spacing:.5px}
+.hud .dim{color:var(--muted)}
+.hud .s{color:var(--muted);margin-top:4px}
+@media(max-width:640px){
+  .hud{grid-template-columns:repeat(2,1fr)}
+  .hud-i:nth-child(2){border-right:0}
+  .hud-i:nth-child(-n+2){border-bottom:2px solid var(--line)}
+}
+
+/* 双栏栅格：桌面 左「设定」1.25 : 右「运行态」1；移动单栏（日志自动提前） */
+.grid{display:grid;gap:16px;align-items:start}
+@media(min-width:900px){ .grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)} }
+
+/* 面板标题栏：黑底像素条 —— 层级一眼可辨 */
+.card-h{background:var(--ink);color:#fff;padding:9px 12px}
+.card-h h2{color:#fff}
+.card-h p{color:rgb(255 255 255 / 62%)}
+.card-h .pill{background:transparent;border-color:currentColor}
+.card-h .pill.gray{color:#cfc8da}
+.card > .pad{padding:14px}
+.card > .log{margin:12px;max-height:420px}
+
+/* 时段进度：等宽两列「赛程表」（去掉行内样式） */
+.slots{display:grid;grid-template-columns:1fr;border:2px solid var(--line)}
+.slot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:2px solid var(--line)}
+.slot .t{font-family:"LingoPixel2P","LingoScreen",var(--pixel);font-size:11px}
+@media(min-width:520px){
+  .slots{grid-template-columns:1fr 1fr}
+  .slot:nth-child(odd){border-right:2px solid var(--line)}
+  .slot:nth-last-child(-n+2){border-bottom:0}
+}
+@media(max-width:519px){ .slot:last-child{border-bottom:0} }
+
+/* ===== 暗色皮肤（8-bit 深色）：不透明面板 + 亮描边 + 霓虹硬阴影，去掉毛玻璃 ===== */
+body.dark{
+  --page:#0e1018; --surface:#171b28;
+  --ink:#e9ecf7; --muted:#98a1b8; --line:#48526f;
+  --shadow:3px 3px 0 rgb(124 92 255 / .55);
+  --p:#7c5cff; --p-soft:rgb(124 92 255 / .20);
+  --green:#3ddc84; --green-soft:rgb(61 220 132 / .16);
+  --amber:#ffc857; --amber-soft:rgb(255 200 87 / .16);
+  --coral:#ff5c5c; --coral-soft:rgb(255 92 92 / .16);
+  --cyan:#48d9f5; --cyan-soft:rgb(72 217 245 / .16);
+  color:var(--ink);
+  background:
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 3%) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 3%) 0 1px, transparent 1px 8px),
+    var(--page);
+}
+/* 面板：不透明 + 硬边（覆盖前一版暗色主题的毛玻璃） */
+body.dark .topbar,
+body.dark .card,
+body.dark .hud,
+body.dark .actionbar,
+body.dark .modal .box{
+  background:var(--surface); backdrop-filter:none; -webkit-backdrop-filter:none;
+  border-color:var(--line); box-shadow:var(--shadow);
+}
+body.dark .card-h{background:#090b12;border-bottom:2px solid var(--line)}
+body.dark .item{border-color:var(--line)}
+body.dark .thumb{background:transparent;color:var(--cyan)}
+body.dark .chip,
+body.dark .note,
+body.dark .inp,
+body.dark .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+body.dark .chip.on{background:var(--p);color:#090b12;border-color:var(--p)}
+body.dark .chip.act{background:transparent;color:var(--ink);border-color:var(--line)}
+body.dark .chip.act:hover{background:var(--p-soft);border-color:var(--p);color:var(--p)}
+body.dark .btn.primary{background:var(--p);color:#090b12}
+body.dark .btn.soft{background:var(--amber);color:#090b12}
+body.dark .pill{background:transparent;border-color:currentColor}
+body.dark .pill.gray{background:transparent;color:var(--muted);border-color:var(--muted)}
+body.dark .switch{background:#090b12;border-color:var(--line)}
+body.dark .switch::after{background:var(--muted)}
+body.dark .switch.on{background:var(--green);border-color:var(--green)}
+body.dark .switch.on::after{background:#090b12}
+body.dark .log{background:#090b12;border-color:var(--line);color:#cfd6ea}
+body.dark .log .ts{color:#7c88a8}
+body.dark .note{background:#12151f}
+body.dark .warn-box{background:#2a1520;border-color:var(--coral);color:#ffb3b3}
+body.dark .qr{border-color:var(--line)}
+body.dark .qr i{background:var(--ink)}
+body.dark .pet-toast{background:var(--surface);border-color:var(--line)}
+body.dark .pet-mood{border-color:var(--surface)}
+body.dark .modal{background:rgb(4 6 12 / 78%)}
+body.dark .card-h .pill.gray{color:#b9c2d8}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="sr-only">Lingo · 抢购控制台</h1>
+    <div class="brand" title="Lingo">
+      <img class="lingo-lockup mark-light" src="assets/lingo-lockup.png" alt="Lingo" />
+      <img class="lingo-lockup mark-dark" src="assets/lingo-lockup-white.png" alt="Lingo" />
+    </div>
+    <span class="grow"></span>
+    <span class="pill green" id="runPill">● 运行中</span>
+    <button class="btn ghost" id="robotBtn" title="Lingo 桌宠：自由走动 / 安静待命" aria-pressed="true" style="min-height:34px;padding:0 10px;display:inline-flex;align-items:center;gap:6px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01M2 12h2M20 12h2"/></svg>
+      <span id="robotBtnText">桌宠</span>
+    </button>
+    <button class="btn ghost" id="themeBtn" title="切换主题" aria-label="切换深色/浅色主题" style="min-height:34px;padding:0 10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button>
+    <button class="btn ghost" id="installBtn" style="display:none;min-height:34px;padding:0 12px">安装</button>
+  </header>
+
+  <div class="wrap">
+    <section class="hud">
+      <div class="hud-i"><div class="k">状态</div><div class="v txt">待放号</div><div class="s">自动监控中</div></div>
+      <div class="hud-i"><div class="k">放号倒计时</div><div class="v">12:47</div><div class="s">8-15 10:00</div></div>
+      <div class="hud-i"><div class="k">并发任务</div><div class="v">5</div><div class="s">1 个账号同时抢</div></div>
+      <div class="hud-i"><div class="k">在线账号</div><div class="v">2<span class="dim">/3</span></div><div class="s">微信 A/B 已登录</div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><div><h2>合规模式</h2><p>一键切换自动化程度</p></div></div>
+      <div class="pad">
+        <div class="chips" style="margin:0">
+          <button class="chip on" id="mMonitor" style="cursor:pointer">纯监控提醒（最安全）</button>
+          <button class="chip" id="mSemi" style="cursor:pointer">半自动（人工付款）</button>
+          <button class="chip" id="mFull" style="cursor:pointer">全自动（自动付款）</button>
+        </div>
+        <div class="note" id="modeNote" style="margin-top:12px">只监控余票与开售，到点 <b>提醒并跳转官方页</b>，<b>不自动下单</b>。违规风险最低。</div>
+      </div>
+    </section>
+
+    <div class="grid">
+        <div class="col-main">
+        <section class="card">
+          <div class="card-h"><div><h2>抢购目标</h2><p>选平台 → 核对演出 / 场次 / 票档</p></div><span class="pill gray">6 个平台</span></div>
+          <div class="pad" style="padding-bottom:0">
+            <div class="chips" style="margin:0">
+              <button class="chip on" id="platYouzan" style="cursor:pointer">有赞</button>
+              <button class="chip" id="platDamai" style="cursor:pointer">大麦</button>
+              <button class="chip" id="platMaoyan" style="cursor:pointer">猫眼</button>
+              <button class="chip" id="platTaopiaopiao" style="cursor:pointer">淘票票</button>
+              <button class="chip" id="platBinwan" style="cursor:pointer">缤玩岛</button>
+              <button class="chip" id="platCustom" style="cursor:pointer">+ 自定义</button>
+              <button class="chip" id="platDouyin" style="cursor:pointer">抖音</button>
+            </div>
+          </div>
+
+          <div id="goalYouzan" class="pad" style="padding-top:12px">
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10M3 4h18l-1.5 6H4.5L3 4Z"/><path d="M9 20v-6h6v6"/></svg></div>
+              <div>
+                <div class="t">成都店8月15日-8月17日进店时段预约</div>
+                <div class="m">有赞微商城 · TWOI Design Lab成都店 · <span class="price">¥0.01</span></div>
+              </div>
+            </div>
+            <div class="chips" style="margin-top:12px">
+              <span class="chip on">成都店</span><span class="chip">上海店</span><span class="chip">北京店</span>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标时段（10:00–22:00，全部勾选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">10–11</span><span class="chip on">11–12</span><span class="chip on">12–13</span>
+                <span class="chip on">13–14</span><span class="chip on">14–15</span><span class="chip on">15–16</span>
+                <span class="chip on">16–17</span><span class="chip on">17–18</span><span class="chip on">18–19</span>
+                <span class="chip on">19–20</span><span class="chip on">20–21</span><span class="chip on">21–22</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">数量</div><div class="fv">1 份 / 时段</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">0.5 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">自动付款（免密）</div></div>
+              <div><div class="fl">策略</div><div class="fv">全部抢满 · 抢到即转下一时段</div></div>
+              <div><div class="fl">重试间隔</div><div class="fv">0.5 秒</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控商品</span><span class="chip on">自动选时段</span><span class="chip on">自动提交订单</span><span class="chip on">自动付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">有赞为 <b>H5</b>，可用浏览器自动化（保持登录态 → 监控 → 提交订单 → <b>自动付款</b>）。</div>
+          </div>
+
+          <div id="goalDamai" class="pad" style="padding-top:12px" hidden>
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Z"/><path d="M5 11a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg></div>
+              <div>
+                <div class="t">周杰伦「嘉年华」演唱会 · 上海站</div>
+                <div class="m">大麦网 · 上海体育场 · <span class="price">¥680</span> 起 · 实名制</div>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标场次（多选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">10-25 19:30</span><span class="chip on">10-26 19:30</span><span class="chip">10-27 19:30</span>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">票档（按优先级）</div>
+              <div class="chips">
+                <span class="chip on">内场 ¥1680</span><span class="chip on">看台A ¥980</span><span class="chip">看台B ¥680</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">观演人</div><div class="fv">2 人（已实名）</div></div>
+              <div><div class="fl">数量 / 场</div><div class="fv">2 张</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">0.5 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">自动付款</div></div>
+              <div><div class="fl">策略</div><div class="fv">全部抢满 · 抢到即转场</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控余票</span><span class="chip on">自动选票档</span><span class="chip on">自动提交订单</span><span class="chip on">自动付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">大麦有 <b>Web / H5</b>，可用浏览器自动化；但<b>有滑块验证码与实名风控</b>（观演人需提前绑定）。</div>
+          </div>
+
+          <div id="goalMaoyan" class="pad" style="padding-top:12px" hidden>
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Z"/><path d="M5 11a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg></div>
+              <div>
+                <div class="t">五月天「诺亚方舟」演唱会 · 北京站</div>
+                <div class="m">猫眼 · 国家体育场 · <span class="price">¥580</span> 起 · 实名制</div>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标场次（多选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">10-25 19:30</span><span class="chip on">10-26 19:30</span><span class="chip">10-27 19:30</span>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">票档（按优先级）</div>
+              <div class="chips">
+                <span class="chip on">内场 ¥1680</span><span class="chip on">看台A ¥980</span><span class="chip">看台B ¥680</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">观演人</div><div class="fv">2 人（已实名）</div></div>
+              <div><div class="fl">数量 / 场</div><div class="fv">2 张</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">0.5 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">自动付款</div></div>
+              <div><div class="fl">策略</div><div class="fv">全部抢满 · 抢到即转场</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控余票</span><span class="chip on">自动选票档</span><span class="chip on">自动提交订单</span><span class="chip on">自动付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">猫眼演唱会票，<b>实名制</b>；有滑块验证与风控。</div>
+          </div>
+
+          <div id="goalTaopiaopiao" class="pad" style="padding-top:12px" hidden>
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Z"/><path d="M5 11a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg></div>
+              <div>
+                <div class="t">林俊杰「圣所」演唱会 · 杭州站</div>
+                <div class="m">淘票票 · 杭州奥体 · <span class="price">¥480</span> 起 · 实名制</div>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标场次（多选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">10-25 19:30</span><span class="chip on">10-26 19:30</span><span class="chip">10-27 19:30</span>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">票档（按优先级）</div>
+              <div class="chips">
+                <span class="chip on">内场 ¥1680</span><span class="chip on">看台A ¥980</span><span class="chip">看台B ¥680</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">观演人</div><div class="fv">2 人（已实名）</div></div>
+              <div><div class="fl">数量 / 场</div><div class="fv">2 张</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">0.5 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">自动付款</div></div>
+              <div><div class="fl">策略</div><div class="fv">全部抢满 · 抢到即转场</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控余票</span><span class="chip on">自动选票档</span><span class="chip on">自动提交订单</span><span class="chip on">自动付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">淘票票演唱会票，属阿里系，<b>实名制</b>；有风控与验证。</div>
+          </div>
+
+          <div id="goalBinwan" class="pad" style="padding-top:12px" hidden>
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a4 4 0 0 0 4-4V6a4 4 0 1 0-8 0v5a4 4 0 0 0 4 4Z"/><path d="M5 11a7 7 0 0 0 14 0M12 19v3M8 22h8"/></svg></div>
+              <div>
+                <div class="t">薛之谦「天外来物」演唱会 · 广州站</div>
+                <div class="m">缤玩岛 · 广州体育馆 · <span class="price">¥380</span> 起 · 实名制</div>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标场次（多选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">10-25 19:30</span><span class="chip on">10-26 19:30</span><span class="chip">10-27 19:30</span>
+              </div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">票档（按优先级）</div>
+              <div class="chips">
+                <span class="chip on">内场 ¥1680</span><span class="chip on">看台A ¥980</span><span class="chip">看台B ¥680</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">观演人</div><div class="fv">2 人（已实名）</div></div>
+              <div><div class="fl">数量 / 场</div><div class="fv">2 张</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">0.5 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">自动付款</div></div>
+              <div><div class="fl">策略</div><div class="fv">全部抢满 · 抢到即转场</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控余票</span><span class="chip on">自动选票档</span><span class="chip on">自动提交订单</span><span class="chip on">自动付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">缤玩岛以演出票为主，H5 / 小程序为主；有验证与风控。</div>
+          </div>
+
+          <div id="goalCustom" class="pad" style="padding-top:12px" hidden>
+            <div class="formgrid">
+              <div><label class="lbl">平台</label>
+                <select class="inp"><option>大麦</option><option>猫眼</option><option>淘票票</option><option>缤玩岛</option><option>有赞</option><option>抖音</option><option>其他</option></select>
+              </div>
+              <div><label class="lbl">数量 / 场</label><input class="inp" value="2" /></div>
+              <div class="full"><label class="lbl">演唱会名称 / 链接</label><input class="inp" placeholder="粘贴演出链接，或输入：周杰伦演唱会·上海站" /></div>
+              <div class="full"><label class="lbl">场次（多选，逗号分隔）</label><input class="inp" value="10-25 19:30, 10-26 19:30" /></div>
+              <div class="full"><label class="lbl">票档（按优先级，逗号分隔）</label><input class="inp" value="内场 ¥1680, 看台A ¥980, 看台B ¥580" /></div>
+              <div><label class="lbl">观演人（实名）</label><input class="inp" value="张三, 李四" /></div>
+              <div><label class="lbl">刷新间隔（秒）</label><input class="inp" value="0.5" /></div>
+              <div><label class="lbl">支付</label><select class="inp"><option>自动付款</option><option>人工付款</option></select></div>
+              <div><label class="lbl">策略</label><select class="inp"><option>全部抢满</option><option>抢到即停</option></select></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <button class="chip act">保存目标</button>
+              <span class="chip">从链接自动解析</span>
+            </div>
+            <div class="note" style="margin-top:12px">可<b>自由设定任意演唱会</b>（平台 / 名称 / 场次 / 票档 / 观演人）；也可直接粘贴演出链接自动带出信息。</div>
+          </div>
+
+          <div id="goalDouyin" class="pad" style="padding-top:12px" hidden>
+            <div class="item">
+              <div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 6v12"/></svg></div>
+              <div>
+                <div class="t">抖音生活服务 · 景区门票 / 演出票</div>
+                <div class="m">抖音 App · 门店/场次 · <span class="price">¥99</span> 起</div>
+              </div>
+            </div>
+            <div style="margin-bottom:12px">
+              <div class="fl" style="color:var(--muted);font-size:12px;margin-bottom:6px">目标场次（多选，逐个循环抢）</div>
+              <div class="chips">
+                <span class="chip on">8-20 19:30</span>
+                <span class="chip on">8-21 19:30</span>
+                <span class="chip">8-22 14:00</span>
+              </div>
+            </div>
+            <div class="fields">
+              <div><div class="fl">数量</div><div class="fv">2 张 / 场</div></div>
+              <div><div class="fl">刷新间隔</div><div class="fv">1 秒</div></div>
+              <div><div class="fl">提交方式</div><div class="fv">自动提交订单</div></div>
+              <div><div class="fl">支付</div><div class="fv">不自动 · 人工付款</div></div>
+              <div><div class="fl">运行方式</div><div class="fv">真机自动化</div></div>
+              <div><div class="fl">循环抢</div><div class="fv">多场次循环（直到成功）</div></div>
+            </div>
+            <div class="chips" style="margin-top:14px">
+              <span class="chip on">监控商品</span><span class="chip on">自动选场次</span><span class="chip on">自动提交订单</span><span class="chip on">人工付款</span><span class="chip on">循环抢</span><span class="chip on">微信通知</span>
+            </div>
+            <div class="note" style="margin-top:12px">抖音在 <b>App / 小程序</b>内，需<b>真机自动化（AutoJS/Appium）</b>；抓包要面对 SSL Pinning 与签名风控。</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>目标核对</h2><p>确认没有抢错演出 / 场次</p></div><span class="pill green">已核对</span></div>
+          <div class="pad">
+            <div class="fields">
+              <div><div class="fl">艺人</div><div class="fv">周杰伦</div></div>
+              <div><div class="fl">演出</div><div class="fv">「嘉年华」世界巡回演唱会</div></div>
+              <div><div class="fl">场馆</div><div class="fv">上海体育场</div></div>
+              <div><div class="fl">场次</div><div class="fv">10-25 / 10-26 19:30</div></div>
+              <div><div class="fl">票档</div><div class="fv">内场 ¥1680 起</div></div>
+              <div><div class="fl">来源</div><div class="fv">大麦 · 链接已校验</div></div>
+            </div>
+            <div class="chips" style="margin-top:12px">
+              <button class="chip act">重新核对</button>
+              <span class="chip">打开原页面比对</span>
+              <span class="chip">自动解析链接</span>
+            </div>
+            <div class="note" style="margin-top:12px">粘贴演出链接会自动带出<b>艺人 / 演出 / 场馆 / 场次 / 票档</b>；<b>开抢前会再次核对</b>，不一致则暂停，避免抢成别的演出或错误场次。</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>时段进度</h2><p>每个时段都要抢到（抢到不停，继续下一个）</p></div><span class="pill green">6/12 完成</span></div>
+          <div class="pad">
+            <div class="slots">
+              <div class="slot"><span class="t">10–11</span><span class="pill green">微信A ✔</span></div>
+              <div class="slot"><span class="t">11–12</span><span class="pill green">微信B ✔</span></div>
+              <div class="slot"><span class="t">12–13</span><span class="pill green">微信A ✔</span></div>
+              <div class="slot"><span class="t">13–14</span><span class="pill green">微信C ✔</span></div>
+              <div class="slot"><span class="t">14–15</span><span class="pill green">微信B ✔</span></div>
+              <div class="slot"><span class="t">15–16</span><span class="pill green">微信A ✔</span></div>
+              <div class="slot"><span class="t">16–17</span><span class="pill amber">微信B 抢…</span></div>
+              <div class="slot"><span class="t">17–18</span><span class="pill amber">微信C 抢…</span></div>
+              <div class="slot"><span class="t">18–19</span><span class="pill gray">待开抢</span></div>
+              <div class="slot"><span class="t">19–20</span><span class="pill gray">待开抢</span></div>
+              <div class="slot"><span class="t">20–21</span><span class="pill gray">待开抢</span></div>
+              <div class="slot"><span class="t">21–22</span><span class="pill gray">待开抢</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-side">
+        <section class="card">
+          <div class="card-h"><div><h2>实时日志</h2><p>全自动流程输出</p></div><span class="pill gray">滚动</span></div>
+          <div class="log">
+            <div><span class="ts">08:12:03</span> 登录态校验 <span class="ok">有效</span></div>
+            <div><span class="ts">08:12:04</span> 打开商品页：成都店8月15日-8月17日进店时段预约</div>
+            <div><span class="ts">08:12:05</span> 监控中… <span class="warn">循环刷新</span>（间隔 0.5s，持续到放号）</div>
+            <div><span class="ts">08:12:06</span> 刷新(4)(5)(6)… <span class="warn">尚未放号</span></div>
+            <div><span class="ts">08:59:58</span> 时段「10:00–11:00」<span class="ok">可预约</span> → 提交中…</div>
+            <div><span class="ts">08:59:58</span> 提交失败（库存被抢）→ <span class="warn">循环重试 0.5s</span></div>
+            <div><span class="ts">08:59:59</span> 订单提交 <span class="ok">成功</span> 单号 YZ2026…7731（第 2 次）</div>
+            <div><span class="ts">09:00:00</span> 自动付款 <span class="ok">成功</span> ¥0.01</div>
+            <div><span class="ts">09:00:01</span> 预约码 <b>8F3K-29QD</b> · 已推送微信 <span class="ok">✔</span></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>账号（多微信）</h2><p>多账号 × 多时段</p></div><button class="chip act" id="openLogin">+ 添加</button></div>
+          <div class="pad">
+            <div class="rowline"><span><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>微信 A · 138****8888</span><span class="pill green">已登录</span></div>
+            <div class="rowline"><span><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>微信 B · 139****6666</span><span class="pill green">已登录</span></div>
+            <div class="rowline"><span><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>微信 C · 137****1234</span><span class="pill green">已登录</span></div>
+            <div class="rowline"><span>分配策略</span><span><b>抢到即转下一时段</b></span></div>
+            <div class="chips" style="margin-top:12px">
+              <span class="chip on">多账号并发</span>
+              <span class="chip on">全部抢满</span>
+              <span class="chip on">抢到即转场</span>
+            </div>
+            <div class="note" style="margin-top:12px">3 个账号并行；某账号抢到一个时段后，<b>立即转去抢其他未完成时段</b>，直到 12 段全部抢满。</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>通知</h2><p>抢到后提醒</p></div></div>
+          <div class="pad">
+            <div class="rowline"><span>微信通知</span><span class="switch on" id="tgWx"></span></div>
+            <div class="rowline"><span>Webhook</span><span style="color:var(--muted);font-size:12px">已配置</span></div>
+            <div class="chips" style="margin-top:12px">
+              <button class="chip act" id="testPush">测试推送</button>
+              <span class="chip">短信</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>余票监控</h2><p>只监控、不下单（最合规）</p></div><span class="pill green">运行中</span></div>
+          <div class="pad">
+            <div class="fields">
+              <div><div class="fl">监控时间窗</div><div class="fv">09:00 – 22:00</div></div>
+              <div><div class="fl">查询间隔</div><div class="fv">1 秒</div></div>
+              <div><div class="fl">最大次数</div><div class="fv">无限</div></div>
+              <div><div class="fl">首次可购时</div><div class="fv">提醒并结束监控</div></div>
+            </div>
+            <div class="rowline" style="margin-top:10px"><span>微信提醒</span><span class="switch on" id="tgWx2"></span></div>
+            <div class="chips" style="margin-top:12px">
+              <span class="chip on">大麦</span><span class="chip on">猫眼</span><span class="chip">B站会员购</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>自动校时</h2><p>对齐平台服务器时间</p></div><span class="pill green">已校准</span></div>
+          <div class="pad">
+            <div class="fields">
+              <div><div class="fl">本地时间</div><div class="fv">10:24:18.0</div></div>
+              <div><div class="fl">服务器时间</div><div class="fv">10:24:18.8</div></div>
+              <div><div class="fl">偏差</div><div class="fv">+0.8 秒</div></div>
+              <div><div class="fl">来源</div><div class="fv">淘宝时间接口</div></div>
+            </div>
+            <div class="chips" style="margin-top:12px">
+              <button class="chip act">重新校准</button>
+              <span class="chip">开售前自动校准</span>
+            </div>
+            <div class="note" style="margin-top:12px">开售瞬间对齐服务器时间，避免本地时钟偏差导致"早/晚"几十毫秒。</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><div><h2>多账号 · Cookie</h2><p>按平台管理账号与登录态</p></div><span class="pill gray">3 个</span></div>
+          <div class="pad">
+            <div class="rowline"><span>大麦 · 微信A</span><span class="pill green">有效 3h12m</span></div>
+            <div class="rowline"><span>猫眼 · 微信B</span><span class="pill green">有效 5h40m</span></div>
+            <div class="rowline"><span>B站 · 微信C</span><span class="pill amber">即将过期</span></div>
+            <div class="chips" style="margin-top:12px">
+              <span class="chip on">默认账号</span>
+              <button class="chip act">导入 Cookie</button>
+              <button class="chip act">刷新登录态</button>
+              <span class="chip">导出</span>
+            </div>
+            <div class="note" style="margin-top:12px">每个平台独立管理多账号 + Cookie；登录态过期自动提示续登。</div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>说明：</b>本页为原型，数据为示例，未连接真实平台。后续接入有赞 H5 时，保持登录态 → 监控商品 → 到点提交订单 → 支付，全程可在<b>手机浏览器</b>里操作。
+    </div>
+    <div class="warn-box">
+      本版为<b>半自动</b>：抢到即<b>自动创建订单</b>，但<b>不自动支付</b>，由用户<b>手动付款</b>。风险更低，也更符合"预约下单、人工结账"的场景。注意订单有时限，请及时付款。
+    </div>
+    <div class="foot-brand">
+      <span>本产品由</span>
+      <img class="lingo-lockup sm mark-light" src="assets/lingo-lockup.png" alt="Lingo" />
+      <img class="lingo-lockup sm mark-dark" src="assets/lingo-lockup-white.png" alt="Lingo" />
+      <span>提供技术支持</span>
+    </div>
+  </div>
+
+  <div class="actionbar">
+    <button class="btn ghost" id="stopBtn">暂停</button>
+    <button class="btn soft" id="newBtn">新建</button>
+    <button class="btn primary" id="startBtn">立即开抢</button>
+  </div>
+
+  <div class="modal" id="loginModal">
+    <div class="box">
+      <h3>扫码登录有赞</h3>
+      <p>用微信扫码，授权后自动同步登录态</p>
+      <div class="qr" id="qrBox"></div>
+      <div class="chips" style="margin-top:16px;justify-content:center">
+        <button class="btn primary" id="qrDone">我已完成扫码</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Lingo 桌宠（轻量版）===== -->
+  <div class="pet" id="pet" hidden>
+    <div class="pet-toast-stack" id="petToastStack" aria-hidden="true"></div>
+    <button class="pet-body" id="petBody" type="button" aria-label="Lingo 助手：点击切换自由走动 / 安静待命">
+      <span class="pet-shadow" aria-hidden="true"></span>
+      <span class="pet-sway" id="petSway" aria-hidden="true">
+        <img class="pet-img" id="petImg" src="assets/robot.png" alt="" aria-hidden="true" />
+      </span>
+      <span class="pet-mood" aria-hidden="true"></span>
+    </button>
+    <p class="sr-only" role="status" aria-live="polite" id="petLive"></p>
+  </div>
+
+  <script>
+  (function () {
+    // 二维码占位（伪）
+    var qrBox = document.getElementById('qrBox');
+    if (qrBox) {
+      var cells = 121, on = {};
+      var anchors = [0,1,2,3,4,5,6, 11,13,15,17, 22,23,24,26,27,28, 35,37, 44,45,46,47,48,49,50, 55,56,60, 66,67,68,70,71,72, 76,88, 90, 99, 96,97, 108,109,110, 119,120];
+      anchors.forEach(function (i) { on[i] = 1; });
+      for (var i = 0; i < cells; i++) {
+        var c = document.createElement('i');
+        if (on[i]) c.style.background = 'var(--ink)';
+        qrBox.appendChild(c);
+      }
+    }
+    var modal = document.getElementById('loginModal');
+    var open = document.getElementById('openLogin');
+    if (open) open.addEventListener('click', function () { modal.classList.add('show'); });
+    var done = document.getElementById('qrDone');
+    if (done) done.addEventListener('click', function () { modal.classList.remove('show'); });
+    if (modal) modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('show'); });
+
+    // 通知开关 / 测试推送
+    var tg = document.getElementById('tgWx');
+    if (tg) tg.addEventListener('click', function () { tg.classList.toggle('on'); });
+    var tg2 = document.getElementById('tgWx2');
+    if (tg2) tg2.addEventListener('click', function () { tg2.classList.toggle('on'); });
+    var tp = document.getElementById('testPush');
+    if (tp) tp.addEventListener('click', function () { alert('已发送测试通知（原型）'); });
+
+    // PWA 安装
+    var deferred = null, btn = document.getElementById('installBtn');
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; if (btn) btn.style.display = 'inline-flex'; });
+    if (btn) btn.addEventListener('click', function () {
+      if (deferred) { deferred.prompt(); deferred = null; btn.style.display = 'none'; }
+      else { alert('iOS：Safari → 分享 → 添加到主屏幕\nAndroid：浏览器菜单 → 添加到主屏幕'); }
+    });
+
+    // Service Worker
+    if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    }
+
+    // 平台切换：有赞 / 大麦 / 抖音
+    var yz = document.getElementById('goalYouzan'), dy = document.getElementById('goalDouyin'), dm = document.getElementById('goalDamai'), my = document.getElementById('goalMaoyan'), tpp = document.getElementById('goalTaopiaopiao'), bw = document.getElementById('goalBinwan'), cu = document.getElementById('goalCustom');
+    var byz = document.getElementById('platYouzan'), bdy = document.getElementById('platDouyin'), bdm = document.getElementById('platDamai'), bmy = document.getElementById('platMaoyan'), btpp = document.getElementById('platTaopiaopiao'), bbw = document.getElementById('platBinwan'), bcu = document.getElementById('platCustom');
+    function setPlat(p) {
+      if (yz) yz.hidden = p !== 'youzan';
+      if (dy) dy.hidden = p !== 'douyin';
+      if (dm) dm.hidden = p !== 'damai';
+      if (my) my.hidden = p !== 'maoyan';
+      if (tpp) tpp.hidden = p !== 'taopiaopiao';
+      if (bw) bw.hidden = p !== 'binwan';
+      if (cu) cu.hidden = p !== 'custom';
+      if (byz) byz.classList.toggle('on', p === 'youzan');
+      if (bdy) bdy.classList.toggle('on', p === 'douyin');
+      if (bdm) bdm.classList.toggle('on', p === 'damai');
+      if (bmy) bmy.classList.toggle('on', p === 'maoyan');
+      if (btpp) btpp.classList.toggle('on', p === 'taopiaopiao');
+      if (bbw) bbw.classList.toggle('on', p === 'binwan');
+      if (bcu) bcu.classList.toggle('on', p === 'custom');
+    }
+    if (byz) byz.addEventListener('click', function () { setPlat('youzan'); });
+    if (bdy) bdy.addEventListener('click', function () { setPlat('douyin'); });
+    if (bdm) bdm.addEventListener('click', function () { setPlat('damai'); });
+    if (bmy) bmy.addEventListener('click', function () { setPlat('maoyan'); });
+    if (btpp) btpp.addEventListener('click', function () { setPlat('taopiaopiao'); });
+    if (bbw) bbw.addEventListener('click', function () { setPlat('binwan'); });
+    if (bcu) bcu.addEventListener('click', function () { setPlat('custom'); });
+    // 合规模式
+    var modes = {
+      monitor: { note: '只监控余票与开售，到点 <b>提醒并跳转官方页</b>，<b>不自动下单</b>。违规风险最低。' },
+      semi: { note: '自动监控 + 自动提交订单，但 <b>不自动付款</b>，由用户手动付款。风险中等。' },
+      full: { note: '自动监控 + 自动提交 + <b>自动付款</b>。风险最高，可能触发风控 / 封号。' }
+    };
+    function setMode(m) {
+      var cfg = modes[m]; if (!cfg) return;
+      ['mMonitor', 'mSemi', 'mFull'].forEach(function (id) { var b = document.getElementById(id); if (b) b.classList.remove('on'); });
+      var map = { monitor: 'mMonitor', semi: 'mSemi', full: 'mFull' };
+      var btn = document.getElementById(map[m]); if (btn) btn.classList.add('on');
+      var note = document.getElementById('modeNote'); if (note) note.innerHTML = cfg.note;
+    }
+    var mMon = document.getElementById('mMonitor'), mSemi = document.getElementById('mSemi'), mFull = document.getElementById('mFull');
+    if (mMon) mMon.addEventListener('click', function () { setMode('monitor'); petSay('合规模式 · 纯监控提醒', '只监控余票与开售，不自动下单', 'info', 'idle'); });
+    if (mSemi) mSemi.addEventListener('click', function () { setMode('semi'); petSay('合规模式 · 半自动', '自动下单，人工付款', 'warn', 'active'); });
+    if (mFull) mFull.addEventListener('click', function () { setMode('full'); petSay('合规模式 · 全自动', '自动下单 + 自动付款，风险最高', 'danger', 'warn'); });
+
+    // ===== 主题切换（浅色 / 暗色）=====
+    var themeBtn = document.getElementById('themeBtn');
+    try { if (localStorage.getItem('tg-theme') === 'dark') document.body.classList.add('dark'); } catch (e) {}
+    if (themeBtn) themeBtn.addEventListener('click', function () {
+      document.body.classList.toggle('dark');
+      try { localStorage.setItem('tg-theme', document.body.classList.contains('dark') ? 'dark' : 'light'); } catch (e) {}
+    });
+
+    // ===== 后端对接（经 server.js 打开时生效）=====
+    if (location.protocol.indexOf('http') === 0) {
+      var api = function (path, opts) {
+        return fetch(path, opts).then(function (r) { return r.json(); }).catch(function () { return null; });
+      };
+      api('/api/config').then(function (c) {
+        if (!c) return;
+        setMode(c.mode === 'full' ? 'full' : c.mode === 'semi' ? 'semi' : 'monitor');
+      });
+      var startBtn = document.getElementById('startBtn');
+      var stopBtn = document.getElementById('stopBtn');
+      if (startBtn) startBtn.addEventListener('click', function () {
+        startBtn.textContent = '启动中…';
+        petSay('开始抢购', '已启动，正在监控余票…', 'info', 'active');
+        api('/api/start', { method: 'POST' }).then(function (r) {
+          startBtn.textContent = (r && r.ok) ? '运行中' : '立即开抢';
+          if (!r || !r.ok) petSay('启动失败', (r && r.error) || '请检查账号登录态', 'danger', 'error');
+        });
+      });
+      if (stopBtn) stopBtn.addEventListener('click', function () {
+        petSay('已暂停', '抢购任务已停止', 'warn', 'idle');
+        api('/api/stop', { method: 'POST' }).then(function () {
+          if (startBtn) startBtn.textContent = '立即开抢';
+        });
+      });
+      setInterval(function () {
+        api('/api/status').then(function (s) {
+          if (!s) return;
+          if (startBtn) startBtn.textContent = s.running ? '运行中' : '立即开抢';
+          var pill = document.getElementById('runPill');
+          if (pill) { pill.textContent = s.running ? '● 运行中' : '○ 已停止'; pill.className = 'pill ' + (s.running ? 'green' : 'gray'); }
+          Pet.setMood(s.running ? 'active' : 'idle');
+        });
+      }, 3000);
+    }
+
+    /* =====================================================================
+     * Lingo 桌宠（轻量版 · 搬运自 Lingo 调度台并裁剪）
+     * ---------------------------------------------------------------------
+     *  1. 鼠标一动   → 立刻静止（不追鼠标、不挡操作），只轻微侧身「看向」光标
+     *  2. 空闲 N 秒  → 自由漫游：随机选点走过去，停下观察
+     *  3. 抢购事件   → 冒气泡播报（开始/暂停/模式切换…）
+     *  4. 点击本体   → 自由走动 <-> 安静待命（选择记在本地）
+     *  5. 全程鼠标穿透：只有机器人本体与气泡可点
+     * ===================================================================== */
+    function petSay(title, text, tone, mood) {
+      if (mood && Pet.setMood) Pet.setMood(mood);
+      try { Pet.notify({ title: title, text: text, tone: tone || 'info' }); } catch (e) {}
+    }
+
+    var Pet = {
+      IDLE_AFTER_MS: 15000, SPEED: 62, OBSERVE_MS: 2600, DRAG_THRESHOLD: 4,
+      TOAST_MIN_MS: 5000, TOAST_MAX_MS: 10000, TOAST_MAX: 3,
+      el: {}, x: 0, y: 0, tx: 0, ty: 0, walking: false, speed: 0, traveled: 0,
+      facing: 'right', lastMouse: 0, mode: 'idle', observeUntil: 0,
+      raf: 0, lastT: 0, parked: false, dragging: false, destroyed: false, _dragged: false,
+
+      clamp(v, a, b) { return v < a ? a : (v > b ? b : v); },
+
+      init() {
+        var root = document.getElementById('pet');
+        if (!root) return;
+        this.el.root = root;
+        this.el.body = document.getElementById('petBody');
+        this.el.sway = document.getElementById('petSway');
+        this.el.stack = document.getElementById('petToastStack');
+        this.el.live = document.getElementById('petLive');
+
+        var restored = null;
+        try { restored = JSON.parse(localStorage.getItem('lingo.pet.pos') || 'null'); } catch (e) {}
+        this.x = (restored && isFinite(restored.x)) ? restored.x : 24;
+        this.y = (restored && isFinite(restored.y)) ? restored.y : window.innerHeight - 150;
+        this.tx = this.x; this.ty = this.y;
+
+        var parked = false;
+        try { parked = localStorage.getItem('lingo.pet.parked') === '1'; } catch (e) {}
+        this.setParked(parked, true);
+
+        root.hidden = false;
+        this.applyTransform();
+        this.clampToViewport();
+
+        // 点击本体：自由走动 <-> 安静待命（刚拖动过则不触发）
+        this.el.body.addEventListener('click', () => {
+          if (this._dragged) { this._dragged = false; return; }
+          this.setParked(!this.parked);
+          try { localStorage.setItem('lingo.pet.parked', this.parked ? '1' : '0'); } catch (e) {}
+          this.notify({
+            title: this.parked ? '安静待命中' : '恢复走动',
+            text: this.parked ? '点我随时叫回来' : '我盯着抢购进度呢',
+            tone: 'info'
+          });
+          if (window.__syncPetBtn) window.__syncPetBtn();
+        });
+        this.el.body.addEventListener('pointerdown', (e) => this.onDragStart(e));
+
+        // 用户有任何操作 → 立刻静止，并重置空闲计时
+        var activity = (e) => this.onUserActivity(e);
+        ['mousemove', 'mousedown', 'wheel', 'keydown', 'touchstart', 'touchmove'].forEach(function (ev) {
+          window.addEventListener(ev, activity, { passive: true });
+        });
+        window.addEventListener('resize', () => this.clampToViewport());
+        document.addEventListener('visibilitychange', () => {
+          this.lastMouse = performance.now();
+          if (document.hidden) { this.tx = this.x; this.ty = this.y; this.mode = 'idle'; }
+        });
+
+        this.scheduleBlink();
+        this.scheduleMicro();
+        this.lastT = performance.now();
+        this.lastMouse = performance.now();
+        this.loop();
+      },
+
+      setParked(on, silent) {
+        this.parked = !!on;
+        if (!this.el.root) return;
+        this.el.root.classList.toggle('parked', this.parked);
+        if (this.parked) {
+          this.walking = false;
+          this.el.root.classList.remove('walking');
+          this.tx = this.x; this.ty = this.y; this.mode = 'idle';
+        } else if (!silent) {
+          this.clampToViewport();
+        }
+      },
+
+      setMood(mood) {
+        if (this.el.root) this.el.root.dataset.mood = mood || 'idle';
+      },
+
+      /* ---------- 长按拖动 ---------- */
+      onDragStart(e) {
+        if (e.button != null && e.button !== 0) return;
+        e.preventDefault();
+        this._dragStart = { px: e.clientX, py: e.clientY, ox: this.x, oy: this.y, moved: false };
+        this.dragging = true;
+        this.el.root.classList.add('dragging');
+        this.walking = false;
+        this.el.root.classList.remove('walking');
+        try { this.el.body.setPointerCapture(e.pointerId); } catch (err) {}
+        this._pointerId = e.pointerId;
+        this._moveHandler = (ev) => this._onDragMove(ev);
+        this._endHandler = (ev) => this._onDragEnd(ev);
+        window.addEventListener('pointermove', this._moveHandler);
+        window.addEventListener('pointerup', this._endHandler);
+        window.addEventListener('pointercancel', this._endHandler);
+      },
+
+      _onDragMove(e) {
+        if (!this.dragging || !this._dragStart) return;
+        var dx = e.clientX - this._dragStart.px, dy = e.clientY - this._dragStart.py;
+        if (!this._dragStart.moved && Math.hypot(dx, dy) < this.DRAG_THRESHOLD) return;
+        this._dragStart.moved = true;
+        this._dragged = true;
+        var w = this.el.root.offsetWidth || 72, h = this.el.root.offsetHeight || 90;
+        this.x = this.clamp(this._dragStart.ox + dx, 4, window.innerWidth - w - 4);
+        this.y = this.clamp(this._dragStart.oy + dy, 4, window.innerHeight - h - 4);
+        this.applyTransform();
+        if (Math.abs(dx) > 6) {
+          var f = dx < 0 ? 'left' : 'right';
+          if (f !== this.facing) { this.facing = f; this.el.root.classList.toggle('facing-left', f === 'left'); }
+        }
+      },
+
+      _onDragEnd() {
+        if (!this.dragging) return;
+        this.dragging = false;
+        this.el.root.classList.remove('dragging');
+        this.tx = this.x; this.ty = this.y;
+        this.mode = 'idle';
+        this.lastMouse = performance.now();
+        try { localStorage.setItem('lingo.pet.pos', JSON.stringify({ x: Math.round(this.x), y: Math.round(this.y) })); } catch (e) {}
+        try { this.el.body.releasePointerCapture(this._pointerId); } catch (e) {}
+        window.removeEventListener('pointermove', this._moveHandler);
+        window.removeEventListener('pointerup', this._endHandler);
+        window.removeEventListener('pointercancel', this._endHandler);
+      },
+
+      onUserActivity(e) {
+        this.lastMouse = performance.now();
+        if (e && typeof e.clientX === 'number') this.lookAt(e.clientX, e.clientY);
+        if (this.parked || this.dragging) return;
+        if (this.mode === 'wander' || this.mode === 'observe') { this.tx = this.x; this.ty = this.y; }
+        this.mode = 'idle';
+        if (this.walking) {
+          this.walking = false;
+          this.el.root.classList.remove('walking');
+          this.el.root.style.setProperty('--gaze-tilt', '0deg');
+        }
+      },
+
+      // 只做「轻微侧身」表达朝向（不做瞳孔游移，避免每帧重排）
+      lookAt(mx, my) {
+        if (!this.el.body) return;
+        var now = performance.now();
+        if (!this._gazeRect || now - this._gazeRectAt > 250) {
+          this._gazeRect = this.el.body.getBoundingClientRect();
+          this._gazeRectAt = now;
+        }
+        var r = this._gazeRect;
+        if (!r || !r.width) return;
+        var cx = r.left + r.width / 2, cy = r.top + r.height * 0.42;
+        var dx = mx - cx;
+        if (this.el.sway && !this.walking && !this.dragging) {
+          var tilt = (dx / Math.max(1, Math.abs(dx) + 200)) * 3;
+          this.el.root.style.setProperty('--gaze-tilt', tilt.toFixed(2) + 'deg');
+        }
+      },
+
+      blink() {
+        if (!this.el.sway) return;
+        this.el.sway.classList.add('blink');
+        setTimeout(() => { if (this.el.sway) this.el.sway.classList.remove('blink'); }, 170);
+      },
+      scheduleBlink() {
+        clearTimeout(this._blinkTimer);
+        this._blinkTimer = setTimeout(() => {
+          if (!this.destroyed) { this.blink(); this.scheduleBlink(); }
+        }, 2200 + Math.random() * 4200);
+      },
+
+      // 待机小动作：偶尔歪头 / 张望 / 伸懒腰（纯 CSS，不移动位置）
+      microIdle() {
+        if (this.dragging || this.walking || this.parked || !this.el.body) return;
+        var moves = ['tilt', 'stretch', 'look'];
+        this.el.body.dataset.micro = moves[Math.floor(Math.random() * moves.length)];
+        clearTimeout(this._microTimer);
+        this._microTimer = setTimeout(() => { if (this.el.body) delete this.el.body.dataset.micro; }, 700 + Math.random() * 500);
+      },
+      scheduleMicro() {
+        clearTimeout(this._microIdleTimer);
+        this._microIdleTimer = setTimeout(() => {
+          if (!this.destroyed) { this.microIdle(); this.scheduleMicro(); }
+        }, 5000 + Math.random() * 7000);
+      },
+
+      // 空闲 → 自由漫游：优先走向「数据模块」停一下看数据
+      pickWanderTarget() {
+        var w = this.el.root.offsetWidth || 72, h = this.el.root.offsetHeight || 90;
+        var anchors = ['.kpis', '.log'].map(function (s) { return document.querySelector(s); })
+          .filter(function (n) { return n && n.getBoundingClientRect().height > 0; });
+        if (anchors.length && Math.random() < 0.72) {
+          var a = anchors[Math.floor(Math.random() * anchors.length)];
+          var r = a.getBoundingClientRect();
+          this.tx = this.clamp(r.left + 24 + Math.random() * Math.max(1, r.width - w - 48), 8, window.innerWidth - w - 8);
+          this.ty = this.clamp(r.top + 40 + Math.random() * Math.max(1, Math.min(r.height, 260) - 40), 70, window.innerHeight - h - 8);
+          this.observeAfterArrive = true;
+        } else {
+          this.tx = 40 + Math.random() * Math.max(1, window.innerWidth - w - 80);
+          this.ty = 90 + Math.random() * Math.max(1, window.innerHeight - h - 160);
+          this.observeAfterArrive = Math.random() < 0.5;
+        }
+        this.mode = 'wander';
+        this.traveled = 0;
+        this.speed = 0;
+      },
+
+      clampToViewport() {
+        var w = this.el.root.offsetWidth || 72, h = this.el.root.offsetHeight || 90;
+        this.x = this.clamp(this.x, 4, Math.max(4, window.innerWidth - w - 4));
+        this.y = this.clamp(this.y, 4, Math.max(4, window.innerHeight - h - 4));
+        this.tx = this.clamp(this.tx, 4, Math.max(4, window.innerWidth - w - 4));
+        this.ty = this.clamp(this.ty, 4, Math.max(4, window.innerHeight - h - 4));
+        this.applyTransform();
+      },
+
+      applyTransform() {
+        if (this.el.root) this.el.root.style.transform = 'translate3d(' + this.x.toFixed(1) + 'px,' + this.y.toFixed(1) + 'px,0)';
+      },
+
+      // 主循环：简单物理（起步加速 / 到站减速，做出重量感）
+      loop() {
+        if (this.destroyed) return;
+        var now = performance.now();
+        var dt = Math.min(0.05, (now - this.lastT) / 1000);
+        this.lastT = now;
+
+        if (!this.parked && !this.dragging) {
+          var userActive = (now - this.lastMouse) < this.IDLE_AFTER_MS;
+          if (userActive) {
+            if (this.walking) { this.walking = false; this.el.root.classList.remove('walking'); }
+            this.mode = 'idle';
+          } else {
+            if (this.mode === 'idle') this.pickWanderTarget();
+            if (this.mode === 'observe' && now >= this.observeUntil) this.pickWanderTarget();
+            if (this.mode === 'wander') {
+              var arrived = this.step(dt);
+              if (arrived) {
+                if (this.observeAfterArrive) {
+                  this.mode = 'observe';
+                  this.observeUntil = now + this.OBSERVE_MS + Math.random() * 1600;
+                } else {
+                  this.pickWanderTarget();
+                }
+              }
+            }
+          }
+        }
+        this.raf = requestAnimationFrame(() => this.loop());
+      },
+
+      // 返回是否到达目标
+      step(dt) {
+        var dx = this.tx - this.x, dy = this.ty - this.y;
+        var dist = Math.hypot(dx, dy);
+        if (dist < 2.5) {
+          this.walking = false; this.speed = 0;
+          this.el.root.classList.remove('walking');
+          return true;
+        }
+        var easeIn = Math.min(1, (this.traveled || 0) / 34);
+        var easeOut = Math.min(1, dist / 46);
+        var targetSpeed = this.SPEED * (0.35 + 0.65 * easeIn) * (0.28 + 0.72 * easeOut);
+        this.speed += (targetSpeed - this.speed) * Math.min(1, dt * 6);
+        var move = Math.max(6, this.speed) * dt;
+        this.traveled = (this.traveled || 0) + move;
+        this.x += (dx / dist) * Math.min(move, dist);
+        this.y += (dy / dist) * Math.min(move, dist);
+        if (Math.abs(dx) > 0.8) {
+          var f = dx < 0 ? 'left' : 'right';
+          if (f !== this.facing) { this.facing = f; this.el.root.classList.toggle('facing-left', f === 'left'); }
+        }
+        this.applyTransform();
+        if (!this.walking) {
+          this.walking = true;
+          this.el.root.classList.add('walking');
+          this.el.root.style.setProperty('--gaze-tilt', '0deg');
+          if (this.el.body) delete this.el.body.dataset.micro;
+        }
+        return false;
+      },
+
+      /* ---------- 气泡播报 ---------- */
+      notify(o) {
+        o = o || {};
+        if (!this.el.root || this.destroyed) return;
+        var title = o.title || 'Lingo 助手', text = o.text || '';
+        if (this.el.live) this.el.live.textContent = title + '。' + text;
+        this.showToast({ title: title, text: text, tone: o.tone || 'info' });
+        this.el.root.classList.add('alerting');
+        clearTimeout(this._alertTimer);
+        this._alertTimer = setTimeout(() => { if (this.el.root) this.el.root.classList.remove('alerting'); }, 1200);
+      },
+
+      showToast(o) {
+        var stack = this.el.stack;
+        if (!stack) return;
+        while (stack.children.length >= this.TOAST_MAX) this._finalizeToast(stack.firstElementChild);
+        var el = document.createElement('div');
+        el.className = 'pet-toast ' + (o.tone || 'info');
+        el.setAttribute('role', 'button');
+        el.setAttribute('tabindex', '0');
+        el.innerHTML =
+          '<img class="pet-toast-ava" src="assets/robot-head.png" alt="" aria-hidden="true" />' +
+          '<div class="pet-toast-body"><div class="pet-toast-title"></div>' +
+          (o.text ? '<div class="pet-toast-text"></div>' : '') + '</div>' +
+          '<span class="pet-toast-bar" aria-hidden="true" style="animation-duration:' + this.TOAST_MAX_MS + 'ms"></span>';
+        el.querySelector('.pet-toast-title').textContent = o.title || 'Lingo 助手';
+        if (o.text) el.querySelector('.pet-toast-text').textContent = o.text;
+        stack.appendChild(el);
+        el.addEventListener('click', () => this.dismissToast(el));
+        var self = this;
+        el.addEventListener('keydown', function (ev) {
+          if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); self.dismissToast(el); }
+        });
+        el._timer = setTimeout(() => this.dismissToast(el),
+          this.TOAST_MIN_MS + Math.random() * (this.TOAST_MAX_MS - this.TOAST_MIN_MS));
+      },
+
+      dismissToast(el) {
+        if (!el || el._gone) return;
+        el._gone = true;
+        clearTimeout(el._timer);
+        el.classList.add('out');
+        setTimeout(function () { el.remove(); }, 280);
+      },
+
+      _finalizeToast(el) {
+        if (!el) return;
+        el._gone = true;
+        clearTimeout(el._timer);
+        el.remove();
+      },
+
+      clearToasts() {
+        if (this.el.stack) this.el.stack.innerHTML = '';
+      }
+    };
+
+    // 启动桌宠 + 顶栏开关
+    Pet.init();
+    window.Pet = Pet;
+    (function () {
+      var petBtn = document.getElementById('robotBtn');
+      function sync() {
+        if (!petBtn) return;
+        petBtn.setAttribute('aria-pressed', String(!Pet.parked));
+        var t = document.getElementById('robotBtnText');
+        if (t) t.textContent = Pet.parked ? '已静默' : '桌宠';
+      }
+      window.__syncPetBtn = sync;
+      sync();
+      if (petBtn) petBtn.addEventListener('click', function () {
+        Pet.setParked(!Pet.parked);
+        try { localStorage.setItem('lingo.pet.parked', Pet.parked ? '1' : '0'); } catch (e) {}
+        sync();
+        Pet.notify({ title: Pet.parked ? '已安静待命' : '桌宠已恢复走动', text: '', tone: 'info' });
+      });
+    })();
+  })();
+  </script>
+</body>
+</html>
